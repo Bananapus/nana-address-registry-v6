@@ -1,47 +1,51 @@
-# nana-address-registry-v5 — AI Reference
+# nana-address-registry-v5
 
 ## Purpose
 
-Allows anyone to register the deployer of a contract so that frontend clients can verify trust. Intended primarily for Juicebox pay/cash-out hooks, but works for any contract deployed via `create` or `create2`.
+Allows anyone to register the deployer of a contract so that frontend clients can verify trust -- primarily for Juicebox pay/cash-out hooks, but works for any contract deployed via `create` or `create2`.
 
 ## Contracts
 
-### JBAddressRegistry (src/JBAddressRegistry.sol)
-Single stateful contract. No constructor arguments, no access control, no dependencies.
+| Contract | Role |
+|----------|------|
+| `JBAddressRegistry` | Standalone registry with no constructor arguments, no access control, and no external dependencies. |
 
-**Storage:**
-- `mapping(address addr => address deployer) public deployerOf`
+## Key Functions
 
-**Events:**
-- `AddressRegistered(address indexed addr, address indexed deployer, address caller)`
-
-## Entry Points
-
-### Register via create (nonce-based)
-```solidity
-function registerAddress(address deployer, uint256 nonce) external
-```
-Computes the deployed address using RLP encoding of `(deployer, nonce)`. Nonce must be <= 2^32.
-
-### Register via create2 (salt+bytecode)
-```solidity
-function registerAddress(address deployer, bytes32 salt, bytes calldata bytecode) external
-```
-Computes `address(keccak256(0xff ++ deployer ++ salt ++ keccak256(bytecode)))`.
-
-### Query
-```solidity
-function deployerOf(address addr) external view returns (address deployer)
-```
+| Function | Contract | What it does |
+|----------|----------|--------------|
+| `registerAddress(address deployer, uint256 nonce)` | `JBAddressRegistry` | Registers a contract deployed via `create`. Computes address from deployer+nonce using RLP encoding. |
+| `registerAddress(address deployer, bytes32 salt, bytes calldata bytecode)` | `JBAddressRegistry` | Registers a contract deployed via `create2`. Computes `keccak256(0xff ++ deployer ++ salt ++ keccak256(bytecode))`. |
+| `deployerOf(address)` | `JBAddressRegistry` | Returns the registered deployer of a given address. Returns `address(0)` if not registered. |
 
 ## Integration Points
 
-- **Frontend clients**: Query `deployerOf(hookAddress)` to check if a hook was deployed by a trusted deployer.
-- **Hook deployers**: Call `registerAddress` after deploying a hook to make it verifiable.
-- **No protocol dependencies**: This contract is standalone -- it does not import or interact with any other Juicebox contracts at runtime.
+| Dependency | Import | Used For |
+|------------|--------|----------|
+| None | -- | This contract is fully standalone with no external dependencies. |
 
-## Key Patterns
+## Key Types
 
-- **Permissionless registration**: Anyone can register any address. The security comes from deterministic address computation -- you cannot fake a deployer because the computed address would not match.
-- **Nonce limit**: The `_addressFrom` function supports nonces up to `2^32` using RLP encoding with variable-length nonce encoding (0x80 for nonce 0, single byte for 1-127, length-prefixed for larger).
-- **No overwrite protection**: Calling `registerAddress` with different parameters for the same computed address will overwrite the deployer. This is safe because only the correct deployer+nonce/salt can produce a given address.
+| Struct/Enum | Key Fields | Used In |
+|-------------|------------|---------|
+| N/A | -- | No custom types. Uses a plain `mapping(address => address)` for storage. |
+
+## Gotchas
+
+- The `_addressFrom` function for `create` addresses only supports nonces up to `2^32`. Higher nonces produce incorrect addresses.
+- No overwrite protection: calling `registerAddress` with different parameters that compute to the same address will overwrite the deployer. This is safe because only the correct deployer+parameters can produce a given address.
+- Registration is permissionless -- anyone can call `registerAddress`, not just the deployer. Security relies on deterministic address computation, not access control.
+
+## Example Integration
+
+```solidity
+import {IJBAddressRegistry} from "@bananapus/address-registry-v5/src/interfaces/IJBAddressRegistry.sol";
+
+// After deploying a hook
+address hook = new MyPayHook();
+registry.registerAddress(address(this), deployerNonce);
+
+// Frontend can verify
+address deployer = registry.deployerOf(address(hook));
+bool trusted = deployer == KNOWN_DEPLOYER;
+```
