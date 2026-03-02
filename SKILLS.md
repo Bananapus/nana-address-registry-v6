@@ -39,7 +39,7 @@ Allows anyone to register the deployer of a contract so that frontend clients ca
 ## Example Integration
 
 ```solidity
-import {IJBAddressRegistry} from "@bananapus/address-registry-v5/src/interfaces/IJBAddressRegistry.sol";
+import {IJBAddressRegistry} from "@bananapus/address-registry-v6/src/interfaces/IJBAddressRegistry.sol";
 
 // After deploying a hook
 address hook = new MyPayHook();
