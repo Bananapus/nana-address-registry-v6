@@ -7,7 +7,7 @@ import {Script, stdJson, VmSafe} from "forge-std/Script.sol";
 import "src/JBAddressRegistry.sol";
 
 contract Deploy is Script, Sphinx {
-    bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistry_";
+    bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistryV6_";
 
     function configureSphinx() public override {
         // TODO: Update to contain JB Emergency Developers
