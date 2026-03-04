@@ -20,6 +20,12 @@ Anyone can register a contract by providing its deployer and deployment paramete
 
 No access control is needed -- only the correct deployer+parameters can produce a given address, so registrations cannot be faked.
 
+### Risks
+
+Hooks have token minting access, making malicious hooks dangerous. Clients should warn project owners and users about any potential for unintended or adversarial behavior, especially for unknown hooks.
+
+Deployers can be exploited. Clients should still communicate risk to users even when the deployer is registered.
+
 ## Install
 
 ```bash
