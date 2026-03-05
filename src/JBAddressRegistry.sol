@@ -3,8 +3,9 @@ pragma solidity 0.8.23;
 
 import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 
-/// @notice Frontend clients need a way to verify that a Juicebox contract has a deployer they trust. `JBAddressRegistry`
-/// allows any contract deployed with `create` or `create2` to publicly register its deployer's address. Whoever deploys
+/// @notice Frontend clients need a way to verify that a Juicebox contract has a deployer they trust.
+/// `JBAddressRegistry` allows any contract deployed with `create` or `create2` to publicly register its deployer's
+/// address. Whoever deploys
 /// a contract is responsible for registering it.
 /// @dev `JBAddressRegistry` is intended for registering the deployers of Juicebox pay/redeem hooks, but does not
 /// enforce adherence to an interface, and can be used for any `create`/`create2` deployer.
