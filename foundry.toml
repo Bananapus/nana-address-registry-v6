@@ -6,7 +6,6 @@ verbosity = 3                           # display errors
 optimizer_runs = 10000000
 block_number = 14126430
 block_timestamp = 1643802347
-runs = 4096
 extra_output = ['storageLayout']
 fs_permissions = [{ access = "read-write", path = "./"}]
 
@@ -22,6 +21,8 @@ optimism_sepolia = "${RPC_OPTIMISM_SEPOLIA}"
 polygon_mumbai = "${RPC_POLYGON_MUMBAI}"
 base_sepolia = "${RPC_BASE_SEPOLIA}"
 
+[fuzz]
+runs = 4096
 
 [fmt]
 number_underscore = "thousands"
