@@ -13,10 +13,14 @@ contract JBAddressRegistryTest_Fork is Test {
     JBAddressRegistry registry;
 
     function setUp() public {
+        // Skip fork tests when the RPC URL is not available (e.g. in CI).
+        string memory rpcUrl = vm.envOr("RPC_ETHEREUM_MAINNET", string(""));
+        if (bytes(rpcUrl).length == 0) {
+            vm.skip(true);
+        }
+
         // Start a mainnet fork.
-        vm.createSelectFork(
-            "https://rpc.ankr.com/eth/4bdda9badb97f42aa5cc09055318c1ae2e4d3c0a449ebdf8bf4fe6969b20772a", blockHeight
-        );
+        vm.createSelectFork(vm.rpcUrl("ethereum"), blockHeight);
 
         registry = new JBAddressRegistry();
     }
