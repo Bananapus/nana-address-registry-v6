@@ -30,10 +30,10 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param nonce The nonce used to deploy the contract.
     function registerAddress(address deployer, uint256 nonce) external override {
         // Calculate the address of the contract, assuming it was deployed using `create` with the specified nonce.
-        address hook = _addressFrom(deployer, nonce);
+        address hook = _addressFrom({origin: deployer, nonce: nonce});
 
         // Register the contract using the calculated address.
-        _registerAddress(hook, deployer);
+        _registerAddress({addr: hook, deployer: deployer});
     }
 
     /// @notice Register a deployed contract's address.
@@ -50,7 +50,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
             address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(bytecode))))));
 
         // Register the contract using the calculated address.
-        _registerAddress(hook, deployer);
+        _registerAddress({addr: hook, deployer: deployer});
     }
 
     //*********************************************************************//
