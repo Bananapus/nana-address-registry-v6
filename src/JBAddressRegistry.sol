@@ -3,9 +3,10 @@ pragma solidity 0.8.23;
 
 import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 
-/// @notice Frontend clients need a way to verify that a Juicebox contract has a deployer they trust. `JBAddressRegistry`
-/// allows any contract deployed with `create` or `create2` to publicly register its deployer's address. Whoever deploys
-/// a contract is reponsible for registering it.
+/// @notice Frontend clients need a way to verify that a Juicebox contract has a deployer they trust.
+/// `JBAddressRegistry` allows any contract deployed with `create` or `create2` to publicly register its deployer's
+/// address. Whoever deploys
+/// a contract is responsible for registering it.
 /// @dev `JBAddressRegistry` is intended for registering the deployers of Juicebox pay/redeem hooks, but does not
 /// enforce adherence to an interface, and can be used for any `create`/`create2` deployer.
 /// @dev The addresses of the deployed contracts are computed deterministically based on the deployer's address, and a
@@ -30,10 +31,10 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param nonce The nonce used to deploy the contract.
     function registerAddress(address deployer, uint256 nonce) external override {
         // Calculate the address of the contract, assuming it was deployed using `create` with the specified nonce.
-        address hook = _addressFrom(deployer, nonce);
+        address hook = _addressFrom({origin: deployer, nonce: nonce});
 
         // Register the contract using the calculated address.
-        _registerAddress(hook, deployer);
+        _registerAddress({addr: hook, deployer: deployer});
     }
 
     /// @notice Register a deployed contract's address.
@@ -50,7 +51,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
             address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), deployer, salt, keccak256(bytecode))))));
 
         // Register the contract using the calculated address.
-        _registerAddress(hook, deployer);
+        _registerAddress({addr: hook, deployer: deployer});
     }
 
     //*********************************************************************//

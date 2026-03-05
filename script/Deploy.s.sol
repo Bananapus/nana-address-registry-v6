@@ -7,11 +7,11 @@ import {Script, stdJson, VmSafe} from "forge-std/Script.sol";
 import "src/JBAddressRegistry.sol";
 
 contract Deploy is Script, Sphinx {
-    bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistry_";
+    bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistryV6_";
 
     function configureSphinx() public override {
         // TODO: Update to contain JB Emergency Developers
-        sphinxConfig.projectName = "nana-address-registry-v5";
+        sphinxConfig.projectName = "nana-address-registry-v6";
         sphinxConfig.mainnets = ["ethereum", "optimism", "base", "arbitrum"];
         sphinxConfig.testnets = ["ethereum_sepolia", "optimism_sepolia", "base_sepolia", "arbitrum_sepolia"];
     }
@@ -23,15 +23,7 @@ contract Deploy is Script, Sphinx {
         }
     }
 
-    function _isDeployed(
-        bytes32 salt,
-        bytes memory creationCode,
-        bytes memory arguments
-    )
-        internal
-        view
-        returns (bool)
-    {
+    function _isDeployed(bytes32 salt, bytes memory creationCode, bytes memory arguments) internal view returns (bool) {
         address _deployedTo = vm.computeCreate2Address({
             salt: salt,
             initCodeHash: keccak256(abi.encodePacked(creationCode, arguments)),
