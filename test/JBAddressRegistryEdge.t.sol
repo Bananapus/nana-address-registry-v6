@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import "forge-std/Test.sol";
-import "../src/JBAddressRegistry.sol";
+import {Test} from "forge-std/Test.sol";
+import {JBAddressRegistry} from "../src/JBAddressRegistry.sol";
 
 /// @title JBAddressRegistryEdge
 /// @notice Edge case and negative tests for JBAddressRegistry: RLP encoding boundaries,
@@ -18,7 +18,7 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // RLP encoding boundary tests — verify _addressFrom at each nonce boundary
+    // RLP encoding boundary tests - verify _addressFrom at each nonce boundary
     // =========================================================================
 
     /// @notice Nonce 0: uses 0x80 byte suffix.
@@ -71,25 +71,25 @@ contract JBAddressRegistryEdge is Test {
         _verifyCreateRegistration(deployer, 0x1000000);
     }
 
-    /// @notice Nonce at max uint32 — highest supported nonce.
+    /// @notice Nonce at max uint32 - highest supported nonce.
     function test_nonceBoundary_maxUint32() public {
         _verifyCreateRegistration(deployer, type(uint32).max);
     }
 
     // =========================================================================
-    // Mismatched parameters — wrong deployer/nonce registers wrong address
+    // Mismatched parameters - wrong deployer/nonce registers wrong address
     // =========================================================================
 
     /// @notice Registering with wrong nonce maps to a different (non-deployed) address.
     function test_mismatchedNonce_registersDifferentAddress() public {
-        uint256 correctNonce = 5;
+        uint64 correctNonce = 5;
 
         // Set nonce and deploy.
-        vm.setNonce(deployer, uint64(correctNonce));
+        vm.setNonce(deployer, correctNonce);
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
-        // Register with wrong nonce — should map to a different address.
+        // Register with wrong nonce - should map to a different address.
         uint256 wrongNonce = 6;
         registry.registerAddress(deployer, wrongNonce);
 
@@ -100,9 +100,9 @@ contract JBAddressRegistryEdge is Test {
     /// @notice Registering with wrong deployer maps to a different address.
     function test_mismatchedDeployer_registersDifferentAddress() public {
         address wrongDeployer = makeAddr("wrongDeployer");
-        uint256 nonce = 1;
+        uint64 nonce = 1;
 
-        vm.setNonce(deployer, uint64(nonce));
+        vm.setNonce(deployer, nonce);
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
@@ -114,14 +114,14 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Duplicate registration — second registration overwrites first
+    // Duplicate registration - second registration overwrites first
     // =========================================================================
 
     /// @notice Registering the same computed address twice overwrites the deployer.
     function test_duplicateRegistration_overwrites() public {
-        uint256 nonce = 1;
+        uint64 nonce = 1;
 
-        vm.setNonce(deployer, uint64(nonce));
+        vm.setNonce(deployer, nonce);
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
@@ -152,7 +152,7 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Create2 — wrong bytecode maps to wrong address
+    // Create2 - wrong bytecode maps to wrong address
     // =========================================================================
 
     /// @notice Create2 registration with wrong bytecode produces different address.
@@ -166,7 +166,7 @@ contract JBAddressRegistryEdge is Test {
         registry.registerAddress(address(factory), salt, type(MockDeployment).creationCode);
         assertEq(registry.deployerOf(deployed), address(factory), "Correct create2 registration should work");
 
-        // Now try registering with wrong bytecode — produces different computed address.
+        // Now try registering with wrong bytecode - produces different computed address.
         bytes memory wrongBytecode = hex"deadbeef";
         registry.registerAddress(address(factory), salt, wrongBytecode);
 
@@ -180,7 +180,7 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Registration with address(0) as deployer succeeds (permissionless).
     function test_zeroAddressDeployer_succeeds() public {
-        // This should not revert — the registry is permissionless and doesn't validate.
+        // This should not revert - the registry is permissionless and doesn't validate.
         registry.registerAddress(address(0), 1);
 
         // The computed address for (address(0), nonce=1) gets mapped to address(0).
@@ -193,8 +193,8 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Verify AddressRegistered event is emitted with correct fields for create.
     function test_eventEmission_create() public {
-        uint256 nonce = 1;
-        vm.setNonce(deployer, uint64(nonce));
+        uint64 nonce = 1;
+        vm.setNonce(deployer, nonce);
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
@@ -226,7 +226,7 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Nonce > uint32 — known limitation (documented behavior)
+    // Nonce > uint32 - known limitation (documented behavior)
     // =========================================================================
 
     /// @notice Nonces above uint32 are truncated by _addressFrom, producing incorrect addresses.
@@ -248,18 +248,18 @@ contract JBAddressRegistryEdge is Test {
         // Both should map the same computed address because uint32(0x100000000) == 0.
         // This means the second call overwrites the first (same key in the mapping).
         // We can't easily verify the address directly, but we can verify that
-        // the registry doesn't revert — it silently computes a truncated address.
+        // the registry doesn't revert - it silently computes a truncated address.
 
         // Deploy at actual nonce 0 to get the real address.
         vm.setNonce(deployer1, 0);
         vm.prank(deployer1);
         address realNonce0 = address(new MockDeployment());
 
-        // Register with nonce 0 — should work correctly.
+        // Register with nonce 0 - should work correctly.
         registry.registerAddress(deployer1, 0);
         assertEq(registry.deployerOf(realNonce0), deployer1, "Nonce 0 should map correctly");
 
-        // Register with nonce 0x100000000 — silently truncates to nonce 0,
+        // Register with nonce 0x100000000 - silently truncates to nonce 0,
         // overwriting the same mapping entry.
         registry.registerAddress(deployer1, 0x100000000);
         // The deployer is still the same, so the mapping is still "correct" by coincidence,
@@ -284,6 +284,7 @@ contract JBAddressRegistryEdge is Test {
             _deployer = makeAddr(string.concat("deployer_", vm.toString(nonce)));
         }
         if (vm.getNonce(_deployer) != nonce) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             vm.setNonce(_deployer, uint64(nonce));
         }
 
@@ -304,12 +305,12 @@ contract JBAddressRegistryEdge is Test {
 }
 
 contract MockDeployment {
-    string _stored = "Hello, world!";
+    string stored = "Hello, world!";
 
     constructor() {}
 
     function getFancyData() external view returns (string memory) {
-        return _stored;
+        return stored;
     }
 }
 
