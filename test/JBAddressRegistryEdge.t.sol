@@ -94,7 +94,9 @@ contract JBAddressRegistryEdge is Test {
         registry.registerAddress(deployer, wrongNonce);
 
         // The deployed contract should NOT be mapped (wrong nonce was used).
-        assertEq(registry.deployerOf(deployed), address(0), "Deployed address should not be registered with wrong nonce");
+        assertEq(
+            registry.deployerOf(deployed), address(0), "Deployed address should not be registered with wrong nonce"
+        );
     }
 
     /// @notice Registering with wrong deployer maps to a different address.
