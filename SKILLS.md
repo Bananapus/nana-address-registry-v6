@@ -1,4 +1,4 @@
-# nana-address-registry-v5
+# nana-address-registry-v6
 
 ## Purpose
 

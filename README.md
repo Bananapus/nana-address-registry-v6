@@ -1,4 +1,6 @@
-# nana-address-registry-v5
+# nana-address-registry-v6
+
+Knowing who deployed a contract is the first step toward trusting it. This registry lets anyone prove a contract's deployer on-chain.
 
 Registry that maps contract addresses to their deployers for frontend trust verification. Supports both `create` (nonce-based) and `create2` (salt+bytecode) deployment verification.
 
