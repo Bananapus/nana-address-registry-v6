@@ -1,4 +1,4 @@
-# nana-address-registry-v6
+# Juicebox Address Registry
 
 ## Purpose
 

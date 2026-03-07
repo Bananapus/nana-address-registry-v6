@@ -1,4 +1,4 @@
-# nana-address-registry-v6
+# Juicebox Address Registry
 
 Knowing who deployed a contract is the first step toward trusting it. This registry lets anyone prove a contract's deployer on-chain -- no access control, no admin keys, just math.
 
