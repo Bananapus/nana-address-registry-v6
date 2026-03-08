@@ -71,9 +71,51 @@ contract JBAddressRegistryEdge is Test {
         _verifyCreateRegistration(deployer, 0x1000000);
     }
 
-    /// @notice Nonce at max uint32 - highest supported nonce.
+    /// @notice Nonce at max uint32.
     function test_nonceBoundary_maxUint32() public {
         _verifyCreateRegistration(deployer, type(uint32).max);
+    }
+
+    /// @notice Nonce 0x100000000: switches to uint40 encoding.
+    function test_nonceBoundary_0x100000000() public {
+        _verifyCreateRegistration(deployer, 0x100000000);
+    }
+
+    /// @notice Nonce at max uint40.
+    function test_nonceBoundary_maxUint40() public {
+        _verifyCreateRegistration(deployer, type(uint40).max);
+    }
+
+    /// @notice Nonce 0x10000000000: switches to uint48 encoding.
+    function test_nonceBoundary_0x10000000000() public {
+        _verifyCreateRegistration(deployer, 0x10000000000);
+    }
+
+    /// @notice Nonce at max uint48.
+    function test_nonceBoundary_maxUint48() public {
+        _verifyCreateRegistration(deployer, type(uint48).max);
+    }
+
+    /// @notice Nonce 0x1000000000000: switches to uint56 encoding.
+    function test_nonceBoundary_0x1000000000000() public {
+        _verifyCreateRegistration(deployer, 0x1000000000000);
+    }
+
+    /// @notice Nonce at max uint56.
+    function test_nonceBoundary_maxUint56() public {
+        _verifyCreateRegistration(deployer, type(uint56).max);
+    }
+
+    /// @notice Nonce 0x100000000000000: switches to uint64 encoding.
+    function test_nonceBoundary_0x100000000000000() public {
+        _verifyCreateRegistration(deployer, 0x100000000000000);
+    }
+
+    /// @notice Nonce at max uint64 - highest supported nonce. Does not deploy (VM limitation).
+    function test_nonceBoundary_maxUint64() public {
+        // Cannot use _verifyCreateRegistration because vm.setNonce cannot handle uint64.max.
+        // Just verify registerAddress does not revert at the boundary.
+        registry.registerAddress(deployer, type(uint64).max);
     }
 
     // =========================================================================
@@ -222,24 +264,35 @@ contract JBAddressRegistryEdge is Test {
     // Fuzz: any valid nonce produces correct registration
     // =========================================================================
 
-    /// @notice Fuzz across the full uint32 nonce range.
+    /// @notice Fuzz across the uint32 nonce range with full deploy-and-verify.
     function testFuzz_createRegistration_anyNonce(uint32 nonce) public {
         _verifyCreateRegistration(deployer, uint256(nonce));
     }
 
+    /// @notice Fuzz: any nonce within uint64 range should not revert on registerAddress.
+    function testFuzz_registerAddress_anyUint64Nonce(uint64 nonce) public {
+        // Just verify registerAddress does not revert for any uint64 nonce.
+        registry.registerAddress(deployer, uint256(nonce));
+    }
+
     // =========================================================================
-    // Nonce > uint32 - now reverts with NonceTooLarge (L-67 fix)
+    // Nonce > uint64 - reverts with NonceTooLarge (L-67 fix extended to uint64)
     // =========================================================================
 
-    /// @notice Nonces above uint32 max now revert instead of silently truncating.
-    function test_nonceAboveUint32_reverts() public {
+    /// @notice Nonces above uint64 max revert instead of silently truncating.
+    function test_nonceAboveUint64_reverts() public {
         address deployer1 = makeAddr("deployer_overflow");
+        uint256 tooLargeNonce = uint256(type(uint64).max) + 1;
 
-        // Nonce at uint32.max + 1 should revert.
         vm.expectRevert(
-            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, uint256(0x100000000))
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, tooLargeNonce)
         );
-        registry.registerAddress(deployer1, 0x100000000);
+        registry.registerAddress(deployer1, tooLargeNonce);
+    }
+
+    /// @notice Nonces in the uint32-uint64 range now succeed (L-67 fix extended support).
+    function test_nonceInUint40Range_succeeds() public {
+        registry.registerAddress(deployer, uint256(type(uint40).max));
     }
 
     // =========================================================================
