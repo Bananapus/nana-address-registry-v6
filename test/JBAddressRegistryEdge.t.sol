@@ -228,49 +228,18 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Nonce > uint32 - known limitation (documented behavior)
+    // Nonce > uint32 - now reverts with NonceTooLarge (L-67 fix)
     // =========================================================================
 
-    /// @notice Nonces above uint32 are truncated by _addressFrom, producing incorrect addresses.
-    ///         This documents the known limitation described in the source code comment:
-    ///         "this won't work for nonces > 2**32"
-    function test_nonceAboveUint32_producesWrongAddress() public {
-        // uint32.max + 1 = 0x100000000
-        // The _addressFrom function hits the `else` branch and casts to uint32,
-        // truncating the nonce. So nonce 0x100000000 produces the same address as nonce 0.
+    /// @notice Nonces above uint32 max now revert instead of silently truncating.
+    function test_nonceAboveUint32_reverts() public {
         address deployer1 = makeAddr("deployer_overflow");
 
-        // Compute address for nonce 0x100000000 via registry.
-        // Register it and check what address was mapped.
-        registry.registerAddress(deployer1, 0x100000000);
-
-        // Also register nonce 0 from the same deployer.
-        registry.registerAddress(deployer1, 0);
-
-        // Both should map the same computed address because uint32(0x100000000) == 0.
-        // This means the second call overwrites the first (same key in the mapping).
-        // We can't easily verify the address directly, but we can verify that
-        // the registry doesn't revert - it silently computes a truncated address.
-
-        // Deploy at actual nonce 0 to get the real address.
-        vm.setNonce(deployer1, 0);
-        vm.prank(deployer1);
-        address realNonce0 = address(new MockDeployment());
-
-        // Register with nonce 0 - should work correctly.
-        registry.registerAddress(deployer1, 0);
-        assertEq(registry.deployerOf(realNonce0), deployer1, "Nonce 0 should map correctly");
-
-        // Register with nonce 0x100000000 - silently truncates to nonce 0,
-        // overwriting the same mapping entry.
-        registry.registerAddress(deployer1, 0x100000000);
-        // The deployer is still the same, so the mapping is still "correct" by coincidence,
-        // but the nonce was silently wrong. This documents the truncation behavior.
-        assertEq(
-            registry.deployerOf(realNonce0),
-            deployer1,
-            "Truncated nonce 0x100000000 overwrites nonce 0's entry (same uint32 cast)"
+        // Nonce at uint32.max + 1 should revert.
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, uint256(0x100000000))
         );
+        registry.registerAddress(deployer1, 0x100000000);
     }
 
     // =========================================================================

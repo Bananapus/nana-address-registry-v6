@@ -13,6 +13,13 @@ import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 /// nonce (for `create`) or `create2` salt and deployment bytecode (for `create2`).
 contract JBAddressRegistry is IJBAddressRegistry {
     //*********************************************************************//
+    // -------------------------------- errors --------------------------- //
+    //*********************************************************************//
+
+    /// @notice Thrown when a nonce exceeds the maximum value supported by the RLP encoding (uint64 max).
+    error JBAddressRegistry_NonceTooLarge(uint256 nonce);
+
+    //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
 
@@ -59,11 +66,13 @@ contract JBAddressRegistry is IJBAddressRegistry {
     //*********************************************************************//
 
     /// @notice Compute the address of a contract deployed using `create` based on the deployer's address and nonce.
-    /// @dev Taken from https://ethereum.stackexchange.com/a/87840/68134 - this won't work for nonces > 2**32. If
-    /// you reach that nonce please: 1) ping us, because wow 2) use another deployer.
+    /// @dev RLP encoding of [origin, nonce]. Supports nonces up to uint64 max (covers any realistic Ethereum nonce).
+    /// @dev Adapted from https://ethereum.stackexchange.com/a/87840/68134
     /// @param origin The deployer's address.
     /// @param nonce The nonce used to deploy the contract.
     function _addressFrom(address origin, uint256 nonce) internal pure returns (address addr) {
+        if (nonce > type(uint64).max) revert JBAddressRegistry_NonceTooLarge(nonce);
+
         bytes memory data;
         if (nonce == 0x00) {
             data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, bytes1(0x80));
@@ -75,8 +84,16 @@ contract JBAddressRegistry is IJBAddressRegistry {
             data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), origin, bytes1(0x82), uint16(nonce));
         } else if (nonce <= 0xffffff) {
             data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), origin, bytes1(0x83), uint24(nonce));
-        } else {
+        } else if (nonce <= 0xffffffff) {
             data = abi.encodePacked(bytes1(0xda), bytes1(0x94), origin, bytes1(0x84), uint32(nonce));
+        } else if (nonce <= 0xffffffffff) {
+            data = abi.encodePacked(bytes1(0xdb), bytes1(0x94), origin, bytes1(0x85), uint40(nonce));
+        } else if (nonce <= 0xffffffffffff) {
+            data = abi.encodePacked(bytes1(0xdc), bytes1(0x94), origin, bytes1(0x86), uint48(nonce));
+        } else if (nonce <= 0xffffffffffffff) {
+            data = abi.encodePacked(bytes1(0xdd), bytes1(0x94), origin, bytes1(0x87), uint56(nonce));
+        } else {
+            data = abi.encodePacked(bytes1(0xde), bytes1(0x94), origin, bytes1(0x88), uint64(nonce));
         }
         bytes32 hash = keccak256(data);
         assembly {
