@@ -38,7 +38,7 @@ Deployed on: Ethereum, Optimism, Arbitrum, Base, and their Sepolia testnets.
 
 | Function | What it does |
 |----------|--------------|
-| `_addressFrom(address origin, uint256 nonce) returns (address)` | Computes `create` address using RLP encoding. Handles 6 nonce ranges: `0`, `1-0x7f`, `0x80-0xff`, `0x100-0xffff`, `0x10000-0xffffff`, `0x1000000-0xffffffff`. Uses `keccak256` of the RLP-encoded `[origin, nonce]` and extracts the low 160 bits via assembly. |
+| `_addressFrom(address origin, uint256 nonce) returns (address)` | Computes `create` address using RLP encoding. Handles 10 nonce ranges: `0`, `1-0x7f`, `0x80-0xff`, `0x100-0xffff`, `0x10000-0xffffff`, `0x1000000-0xffffffff`, `0x100000000-0xffffffffff`, `0x10000000000-0xffffffffffff`, `0x1000000000000-0xffffffffffffff`, `0x100000000000000-0xffffffffffffffff`. Reverts with `JBAddressRegistry_NonceTooLarge` for nonces above `uint64` max. Uses `keccak256` of the RLP-encoded `[origin, nonce]` and extracts the low 160 bits via assembly. |
 | `_registerAddress(address addr, address deployer)` | Writes `deployerOf[addr] = deployer` and emits `AddressRegistered`. Shared by both public `registerAddress` overloads. |
 
 ## Integration Points
@@ -80,7 +80,7 @@ No arrays, no structs, no linked lists. One mapping, that is all.
 
 ## Gotchas
 
-- **Nonce limit**: `_addressFrom` only works for nonces up to `2^32` (4,294,967,295). Nonces above this are silently truncated via `uint32` cast, producing incorrect computed addresses. The contract does not revert -- it just maps the wrong address. In practice this limit is unreachable.
+- **Nonce limit**: `_addressFrom` supports nonces up to `uint64` max (18,446,744,073,709,551,615). Nonces above this revert with `JBAddressRegistry_NonceTooLarge`. In practice this limit is unreachable.
 - **No overwrite protection**: Calling `registerAddress` with parameters that compute to an already-registered address will overwrite the `deployerOf` entry. This is safe because only the correct deployer + parameters produce a given address. But be aware that the same address can be "re-registered" by anyone at any time (with the same result).
 - **Permissionless**: Anyone can call `registerAddress`, not just the deployer. `msg.sender` is recorded in the event as `caller` but is NOT stored in the mapping. Only the computed deployer is stored.
 - **No validation**: The registry does not check that `addr` has code deployed, or that the deployer is a real deployer. It purely does math and stores the result. If you pass wrong parameters, it silently registers a mapping for the wrong address.
@@ -142,5 +142,9 @@ The `_addressFrom` function implements RLP encoding of `[deployer, nonce]` to ma
 | `0x100 - 0xffff` | `0xd8 0x94` | `0x82` + `uint16(nonce)` |
 | `0x10000 - 0xffffff` | `0xd9 0x94` | `0x83` + `uint24(nonce)` |
 | `0x1000000 - 0xffffffff` | `0xda 0x94` | `0x84` + `uint32(nonce)` |
+| `0x100000000 - 0xffffffffff` | `0xdb 0x94` | `0x85` + `uint40(nonce)` |
+| `0x10000000000 - 0xffffffffffff` | `0xdc 0x94` | `0x86` + `uint48(nonce)` |
+| `0x1000000000000 - 0xffffffffffffff` | `0xdd 0x94` | `0x87` + `uint56(nonce)` |
+| `0x100000000000000 - 0xffffffffffffffff` | `0xde 0x94` | `0x88` + `uint64(nonce)` |
 
 The final address is `keccak256(rlp_encoded_data)` with the low 160 bits extracted.
