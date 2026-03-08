@@ -13,6 +13,13 @@ import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 /// nonce (for `create`) or `create2` salt and deployment bytecode (for `create2`).
 contract JBAddressRegistry is IJBAddressRegistry {
     //*********************************************************************//
+    // -------------------------------- errors --------------------------- //
+    //*********************************************************************//
+
+    /// @notice Thrown when a nonce exceeds the maximum value supported by the RLP encoding (uint32 max).
+    error JBAddressRegistry_NonceTooLarge(uint256 nonce);
+
+    //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
 
@@ -64,6 +71,8 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param origin The deployer's address.
     /// @param nonce The nonce used to deploy the contract.
     function _addressFrom(address origin, uint256 nonce) internal pure returns (address addr) {
+        if (nonce > type(uint32).max) revert JBAddressRegistry_NonceTooLarge(nonce);
+
         bytes memory data;
         if (nonce == 0x00) {
             data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, bytes1(0x80));
