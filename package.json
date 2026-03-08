@@ -6,6 +6,9 @@
     "type": "git",
     "url": "git+https://github.com/Bananapus/nana-address-registry-v6"
   },
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "test": "forge test",
     "test:fork": "FOUNDRY_PROFILE=CI forge test",
@@ -15,6 +18,6 @@
     "artifacts": "source ./.env && npx sphinx artifacts --org-id 'ea165b21-7cdc-4d7b-be59-ecdd4c26bee4' --project-name 'nana-address-registry-v5'"
   },
   "dependencies": {
-    "@sphinx-labs/plugins": "^0.33.1"
+    "@sphinx-labs/plugins": "^0.33.2"
   }
 }

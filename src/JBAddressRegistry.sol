@@ -13,7 +13,7 @@ import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 /// nonce (for `create`) or `create2` salt and deployment bytecode (for `create2`).
 contract JBAddressRegistry is IJBAddressRegistry {
     //*********************************************************************//
-    // -------------------------------- errors --------------------------- //
+    // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
     /// @notice Thrown when a nonce exceeds the maximum value supported by the RLP encoding (uint64 max).
@@ -62,7 +62,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
     }
 
     //*********************************************************************//
-    // ---------------------- internal transactions ---------------------- //
+    // -------------------------- internal views ------------------------- //
     //*********************************************************************//
 
     /// @notice Compute the address of a contract deployed using `create` based on the deployer's address and nonce.
@@ -101,6 +101,10 @@ contract JBAddressRegistry is IJBAddressRegistry {
             addr := mload(0)
         }
     }
+
+    //*********************************************************************//
+    // ------------------------ internal functions ----------------------- //
+    //*********************************************************************//
 
     /// @notice Register a contract's deployer in the `deployerOf` mapping.
     /// @param addr The deployed contract's address.

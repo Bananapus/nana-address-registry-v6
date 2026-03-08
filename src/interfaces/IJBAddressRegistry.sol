@@ -1,7 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
+/// @notice A registry that maps deployed contract addresses to their deployers.
 interface IJBAddressRegistry {
+    /// @notice Emitted when a contract address is registered.
+    /// @param addr The address of the registered contract.
+    /// @param deployer The address of the contract's deployer.
+    /// @param caller The address that called the register function.
     event AddressRegistered(address indexed addr, address indexed deployer, address caller);
 
     /// @notice Returns the deployer of a given contract which has been registered.
