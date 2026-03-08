@@ -35,9 +35,7 @@ contract L67_NonceTruncation is Test {
     function test_nonceUint64Max_reverts() public {
         uint256 largeNonce = type(uint64).max;
 
-        vm.expectRevert(
-            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, largeNonce)
-        );
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, largeNonce));
         registry.registerAddress(deployer, largeNonce);
     }
 
@@ -45,9 +43,7 @@ contract L67_NonceTruncation is Test {
     function test_nonceUint256Max_reverts() public {
         uint256 maxNonce = type(uint256).max;
 
-        vm.expectRevert(
-            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, maxNonce)
-        );
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, maxNonce));
         registry.registerAddress(deployer, maxNonce);
     }
 
@@ -55,9 +51,7 @@ contract L67_NonceTruncation is Test {
     function testFuzz_nonceAboveUint32Max_reverts(uint256 nonce) public {
         vm.assume(nonce > type(uint32).max);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, nonce)
-        );
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_NonceTooLarge.selector, nonce));
         registry.registerAddress(deployer, nonce);
     }
 
