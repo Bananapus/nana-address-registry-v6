@@ -276,7 +276,7 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Nonce > uint64 - reverts with NonceTooLarge (L-67 fix extended to uint64)
+    // Nonce > uint64 - reverts with NonceTooLarge (extended to uint64)
     // =========================================================================
 
     /// @notice Nonces above uint64 max revert instead of silently truncating.
@@ -290,7 +290,7 @@ contract JBAddressRegistryEdge is Test {
         registry.registerAddress(deployer1, tooLargeNonce);
     }
 
-    /// @notice Nonces in the uint32-uint64 range now succeed (L-67 fix extended support).
+    /// @notice Nonces in the uint32-uint64 range now succeed (extended support).
     function test_nonceInUint40Range_succeeds() public {
         registry.registerAddress(deployer, uint256(type(uint40).max));
     }
