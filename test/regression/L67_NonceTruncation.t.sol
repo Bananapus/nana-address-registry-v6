@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {JBAddressRegistry} from "../../src/JBAddressRegistry.sol";
 
 /// @title L67_NonceTruncation
-/// @notice Regression test for L-67: _addressFrom originally only handled nonces up to uint32 max,
+/// @notice _addressFrom originally only handled nonces up to uint32 max,
 ///         silently truncating larger values. The fix extends RLP encoding to uint64 max and adds
 ///         an explicit revert for nonces beyond that range.
 contract L67_NonceTruncation is Test {
@@ -21,7 +21,7 @@ contract L67_NonceTruncation is Test {
         registry.registerAddress(deployer, type(uint32).max);
     }
 
-    /// @notice Nonce one above uint32 max should now succeed (uint64 support added in L-67 fix).
+    /// @notice Nonce one above uint32 max should now succeed (uint64 support added).
     function test_nonceAboveUint32Max_succeeds() public {
         uint256 nonce = uint256(type(uint32).max) + 1;
         // Should not revert -- the fix extended support to uint64.
