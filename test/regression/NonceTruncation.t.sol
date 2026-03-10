@@ -4,11 +4,11 @@ pragma solidity ^0.8.26;
 import {Test} from "forge-std/Test.sol";
 import {JBAddressRegistry} from "../../src/JBAddressRegistry.sol";
 
-/// @title L67_NonceTruncation
+/// @title NonceTruncation
 /// @notice _addressFrom originally only handled nonces up to uint32 max,
 ///         silently truncating larger values. The fix extends RLP encoding to uint64 max and adds
 ///         an explicit revert for nonces beyond that range.
-contract L67_NonceTruncation is Test {
+contract NonceTruncation is Test {
     JBAddressRegistry registry;
     address deployer = makeAddr("deployer");
 
