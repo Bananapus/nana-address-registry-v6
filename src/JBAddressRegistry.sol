@@ -77,22 +77,31 @@ contract JBAddressRegistry is IJBAddressRegistry {
         if (nonce == 0x00) {
             data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, bytes1(0x80));
         } else if (nonce <= 0x7f) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, uint8(nonce));
         } else if (nonce <= 0xff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xd7), bytes1(0x94), origin, bytes1(0x81), uint8(nonce));
         } else if (nonce <= 0xffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), origin, bytes1(0x82), uint16(nonce));
         } else if (nonce <= 0xffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), origin, bytes1(0x83), uint24(nonce));
         } else if (nonce <= 0xffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xda), bytes1(0x94), origin, bytes1(0x84), uint32(nonce));
         } else if (nonce <= 0xffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdb), bytes1(0x94), origin, bytes1(0x85), uint40(nonce));
         } else if (nonce <= 0xffffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdc), bytes1(0x94), origin, bytes1(0x86), uint48(nonce));
         } else if (nonce <= 0xffffffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdd), bytes1(0x94), origin, bytes1(0x87), uint56(nonce));
         } else {
+            // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xde), bytes1(0x94), origin, bytes1(0x88), uint64(nonce));
         }
         bytes32 hash = keccak256(data);
