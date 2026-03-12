@@ -1,6 +1,6 @@
 # Juicebox Address Registry
 
-Knowing who deployed a contract is the first step toward trusting it. This registry lets anyone prove a contract's deployer on-chain -- no access control, no admin keys, just math.
+Knowing who deployed a contract is the first step toward trusting it. This registry lets anyone prove a contract's deployer on-chain -- no access control and no admin keys.
 
 `JBAddressRegistry` maps contract addresses to their deployers using deterministic address computation. Provide the deployer address and deployment parameters, and the registry verifies the relationship and stores it permanently. Frontend clients can then look up any registered contract to see who deployed it, which is especially useful for vetting Juicebox pay and cash-out hooks before interacting with them.
 
