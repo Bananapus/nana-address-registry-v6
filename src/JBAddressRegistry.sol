@@ -104,6 +104,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xde), bytes1(0x94), origin, bytes1(0x88), uint64(nonce));
         }
+        // forge-lint: disable-next-line(asm-keccak256)
         bytes32 hash = keccak256(data);
         assembly {
             mstore(0, hash)

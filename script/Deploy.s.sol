@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import "@sphinx-labs/contracts/contracts/foundry/SphinxPlugin.sol";
-import {Script, stdJson, VmSafe} from "forge-std/Script.sol";
+import {Sphinx} from "@sphinx-labs/contracts/contracts/foundry/SphinxPlugin.sol";
+import {Script} from "forge-std/Script.sol";
 
-import "src/JBAddressRegistry.sol";
+import {JBAddressRegistry} from "src/JBAddressRegistry.sol";
 
 contract Deploy is Script, Sphinx {
     bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistryV6_";
