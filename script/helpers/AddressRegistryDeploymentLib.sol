@@ -70,8 +70,8 @@ library AddressRegistryDeploymentLib {
         returns (address)
     {
         string memory deploymentJson =
-            // forge-lint: disable-next-line(unsafe-cheatcode)
-            vm.readFile(string.concat(path, projectName, "/", networkName, "/", contractName, ".json"));
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.readFile(string.concat(path, projectName, "/", networkName, "/", contractName, ".json"));
         return stdJson.readAddress({json: deploymentJson, key: ".address"});
     }
 }
