@@ -18,7 +18,9 @@ contract Deploy is Script, Sphinx {
 
     function run() public sphinx {
         // Only deploy if this bytecode is not already deployed.
-        if (!_isDeployed(ADDRESS_REGISTRY_SALT, type(JBAddressRegistry).creationCode, "")) {
+        if (!_isDeployed({
+                salt: ADDRESS_REGISTRY_SALT, creationCode: type(JBAddressRegistry).creationCode, arguments: ""
+            })) {
             new JBAddressRegistry{salt: ADDRESS_REGISTRY_SALT}();
         }
     }
