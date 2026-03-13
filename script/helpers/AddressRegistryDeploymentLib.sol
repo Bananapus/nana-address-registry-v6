@@ -13,7 +13,9 @@ struct AddressRegistryDeployment {
 
 library AddressRegistryDeploymentLib {
     // Cheat code address, 0x7109709ECfa91a80626fF3989D68f67F5b1DD12D.
+    // forge-lint: disable-next-line(screaming-snake-case-const)
     address internal constant VM_ADDRESS = address(uint160(uint256(keccak256("hevm cheat code"))));
+    // forge-lint: disable-next-line(screaming-snake-case-const)
     Vm internal constant vm = Vm(VM_ADDRESS);
 
     function getDeployment(string memory path) internal returns (AddressRegistryDeployment memory deployment) {
@@ -27,7 +29,7 @@ library AddressRegistryDeploymentLib {
 
         for (uint256 _i; _i < networks.length; _i++) {
             if (networks[_i].chainId == chainId) {
-                return getDeployment(path, networks[_i].name);
+                return getDeployment({path: path, networkName: networks[_i].name});
             }
         }
 
@@ -36,14 +38,20 @@ library AddressRegistryDeploymentLib {
 
     function getDeployment(
         string memory path,
-        string memory network_name
+        string memory networkName
     )
         internal
         view
         returns (AddressRegistryDeployment memory deployment)
     {
-        deployment.registry =
-            IJBAddressRegistry(_getDeploymentAddress(path, "nana-address-registry", network_name, "JBAddressRegistry"));
+        deployment.registry = IJBAddressRegistry(
+            _getDeploymentAddress({
+                path: path,
+                projectName: "nana-address-registry",
+                networkName: networkName,
+                contractName: "JBAddressRegistry"
+            })
+        );
     }
 
     /// @notice Get the address of a contract that was deployed by the Deploy script.
@@ -53,8 +61,8 @@ library AddressRegistryDeploymentLib {
     /// @return The address of the contract.
     function _getDeploymentAddress(
         string memory path,
-        string memory project_name,
-        string memory network_name,
+        string memory projectName,
+        string memory networkName,
         string memory contractName
     )
         internal
@@ -62,7 +70,8 @@ library AddressRegistryDeploymentLib {
         returns (address)
     {
         string memory deploymentJson =
-            vm.readFile(string.concat(path, project_name, "/", network_name, "/", contractName, ".json"));
-        return stdJson.readAddress(deploymentJson, ".address");
+        // forge-lint: disable-next-line(unsafe-cheatcode)
+        vm.readFile(string.concat(path, projectName, "/", networkName, "/", contractName, ".json"));
+        return stdJson.readAddress({json: deploymentJson, key: ".address"});
     }
 }
