@@ -60,7 +60,7 @@ Deployers can be exploited or act maliciously. Clients should still communicate 
 
 ### Limitations
 
-- The `_addressFrom` function for `create` addresses uses RLP encoding that only supports nonces up to `2^32` (4,294,967,295). Higher nonces are silently truncated via `uint32` cast, producing incorrect addresses. In practice, this limit is unreachable.
+- The `_addressFrom` function for `create` addresses uses RLP encoding that only supports nonces up to `uint64` max (18,446,744,073,709,551,615). Higher nonces revert with `JBAddressRegistry_NonceTooLarge`. In practice, this limit is unreachable.
 - No overwrite protection: registering the same computed address again overwrites the previous deployer. This is safe because only the correct deployer + parameters produce a given address -- a second call with the same inputs just re-registers the same deployer.
 - Registration is permissionless -- anyone can call `registerAddress`, not just the deployer. Security relies entirely on deterministic address computation.
 
