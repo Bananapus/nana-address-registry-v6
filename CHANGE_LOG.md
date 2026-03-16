@@ -7,7 +7,7 @@ This document describes all changes between `nana-address-registry` (v5) and `na
 ## 1. Breaking Changes
 
 - **Solidity version bump**: `0.8.23` → `0.8.26`. Contracts compiled against v5 ABIs will still be compatible (no ABI-level breaking changes), but the compiler version requirement has changed.
-- **Nonce range extended from `uint32` to `uint64`**: In v5, the `_addressFrom` function silently produced incorrect addresses for nonces above `2^32`. In v6, nonces up to `uint64.max` are correctly RLP-encoded, and nonces above `uint64.max` revert with `JBAddressRegistry_NonceTooLarge`. Any off-chain tooling that assumed the `uint32` ceiling must be updated.
+- **Nonce range extended from `uint32` to `uint64`**: In v5, the `_addressFrom` function silently produced incorrect addresses for nonces at or above `2^32`. In v6, nonces up to `uint64.max` are correctly RLP-encoded, and nonces above `uint64.max` revert with `JBAddressRegistry_NonceTooLarge`. Any off-chain tooling that assumed the `uint32` ceiling must be updated.
 
 ## 2. New Features
 
