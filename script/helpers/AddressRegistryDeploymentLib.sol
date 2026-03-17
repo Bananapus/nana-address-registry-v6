@@ -47,7 +47,7 @@ library AddressRegistryDeploymentLib {
         deployment.registry = IJBAddressRegistry(
             _getDeploymentAddress({
                 path: path,
-                projectName: "nana-address-registry",
+                projectName: "nana-address-registry-v6",
                 networkName: networkName,
                 contractName: "JBAddressRegistry"
             })
