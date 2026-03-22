@@ -46,6 +46,17 @@ In both cases, the registry stores the mapping `deployerOf[computedAddress] = de
 
 No access control is needed -- only the correct deployer + parameters can produce a given address, so registrations cannot be faked.
 
+```solidity
+// Register a contract deployed via create.
+registry.registerAddress(deployer, nonce);
+
+// Register a contract deployed via create2.
+registry.registerAddress(deployer, salt, bytecode);
+
+// Look up who deployed a contract.
+address deployer = registry.deployerOf(contractAddress);
+```
+
 ### Events
 
 | Event | Fields | Emitted When |
