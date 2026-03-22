@@ -2,6 +2,31 @@
 
 You are auditing a permissionless address registry for Juicebox V6. The contract stores a mapping from deployed contract addresses to their deployers, computed deterministically from `create` or `create2` parameters. It has no owner, no access control, no constructor arguments, and no external dependencies. Read [RISKS.md](./RISKS.md) first -- it documents all known risks and trust assumptions. Then come back here.
 
+## Compiler and Version Info
+
+| Setting | Value |
+|---------|-------|
+| Solidity version | 0.8.26 |
+| EVM target | cancun |
+| Optimizer | enabled, 200 runs |
+| via-IR | not enabled |
+| Fuzz runs | 4,096 |
+| Invariant runs | 1,024 (depth 100) |
+
+Source: [`foundry.toml`](./foundry.toml)
+
+## Previous Audit Findings
+
+A Nemesis automated audit was conducted on 2026-03-17. Results are in [`.audit/findings/nemesis-verified.md`](./.audit/findings/nemesis-verified.md). Summary:
+
+| ID | Severity | Title | Status |
+|----|----------|-------|--------|
+| NM-001 | LOW | Deployment library project name mismatch (`"nana-address-registry"` vs `"nana-address-registry-v6"`) | Open (deployment script only, no runtime impact) |
+
+The core contract (`JBAddressRegistry`) was verified sound -- RLP encoding is correct across all 10 nonce ranges, CREATE2 computation matches EIP-1014. No CRITICAL, HIGH, or MEDIUM findings were identified.
+
+No prior formal audit with finding IDs from an external security firm has been conducted.
+
 ## Scope
 
 **In scope -- all Solidity in `src/`:**
