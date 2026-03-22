@@ -2,6 +2,12 @@
 
 This document describes all changes between `nana-address-registry` (v5) and `nana-address-registry-v6` (v6).
 
+## Summary
+
+- **Nonce range extended from `uint32` to `uint64`**: Fixes silent address miscalculation for large nonces — previously truncated without error, now correctly RLP-encodes up to `uint64` and reverts above.
+- **New `NonceTooLarge` error**: Explicit revert replaces silent truncation for nonces exceeding `uint64.max`.
+- **No ABI-breaking changes**: Interface and function signatures are identical — only the internal nonce encoding logic changed.
+
 ---
 
 ## 1. Breaking Changes
