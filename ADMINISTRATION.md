@@ -26,6 +26,15 @@ Every function is callable by any address. There are no restricted operations.
 - **Permanent storage, no removal.** There is no `unregister` or `removeAddress` function. Entries can be overwritten but never deleted.
 - **No approval or queue.** Registrations take effect immediately in the same transaction.
 
+## Client-Side Trust
+
+The registry stores deployer mappings without making trust judgments. All trust decisions are delegated to clients:
+
+- **No on-chain filtering.** There is no event or view function that distinguishes "trusted" from "untrusted" deployers. Clients must maintain their own allowlist of known deployer addresses and cross-reference against `deployerOf()`.
+- **No event-based discovery.** The contract emits no events. Clients that need to discover new registrations must poll storage or monitor transaction traces.
+- **Overwrite risk.** Since registrations are overwritable, a client that caches `deployerOf(addr)` at time T may see a different result at time T+1 if someone re-registers the same address with a different deployer/nonce or deployer/salt/bytecode combination. Clients should re-check at time of use rather than caching indefinitely.
+- **No validation of deployment.** The registry computes the expected address from the inputs but does not verify that a contract actually exists at that address. A registration can be created for an address that has not yet been deployed (or will never be deployed).
+
 ## Admin Boundaries
 
 There are no admins. Specifically:
