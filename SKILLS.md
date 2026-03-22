@@ -41,6 +41,14 @@ Deployed on: Ethereum, Optimism, Arbitrum, Base, and their Sepolia testnets.
 | `_addressFrom(address origin, uint256 nonce) returns (address)` | Computes `create` address using RLP encoding. Handles 10 nonce ranges: `0`, `1-0x7f`, `0x80-0xff`, `0x100-0xffff`, `0x10000-0xffffff`, `0x1000000-0xffffffff`, `0x100000000-0xffffffffff`, `0x10000000000-0xffffffffffff`, `0x1000000000000-0xffffffffffffff`, `0x100000000000000-0xffffffffffffffff`. Reverts with `JBAddressRegistry_NonceTooLarge` for nonces above `uint64` max. Uses `keccak256` of the RLP-encoded `[origin, nonce]` and extracts the low 160 bits via assembly. |
 | `_registerAddress(address addr, address deployer)` | Writes `deployerOf[addr] = deployer` and emits `AddressRegistered`. Shared by both public `registerAddress` overloads. |
 
+## Errors
+
+| Error | Defined In | Trigger Condition |
+|-------|-----------|-------------------|
+| `JBAddressRegistry_NonceTooLarge(uint256 nonce)` | `JBAddressRegistry` | `registerAddress(deployer, nonce)` is called with a `nonce` greater than `type(uint64).max` (18,446,744,073,709,551,615). Reverts inside `_addressFrom` before any state change. In practice unreachable since no EOA or contract can reach this nonce. |
+
+This is the only custom error in the contract. The `create2` overload of `registerAddress` has no revert paths (invalid parameters silently compute the wrong address).
+
 ## Integration Points
 
 | Dependency | Import | Used For |
@@ -83,7 +91,7 @@ No arrays, no structs, no linked lists. One mapping, that is all.
 - **Nonce limit**: `_addressFrom` supports nonces up to `uint64` max (18,446,744,073,709,551,615). Nonces above this revert with `JBAddressRegistry_NonceTooLarge`. In practice this limit is unreachable.
 - **No overwrite protection**: Calling `registerAddress` with parameters that compute to an already-registered address will overwrite the `deployerOf` entry. This is safe because only the correct deployer + parameters produce a given address. But be aware that the same address can be "re-registered" by anyone at any time (with the same result).
 - **Permissionless**: Anyone can call `registerAddress`, not just the deployer. `msg.sender` is recorded in the event as `caller` but is NOT stored in the mapping. Only the computed deployer is stored.
-- **No validation**: The registry does not check that `addr` has code deployed, or that the deployer is a real deployer. It purely does math and stores the result. If you pass wrong parameters, it silently registers a mapping for the wrong address.
+- **No validation**: The registry does not check that `addr` has code deployed, or that the deployer is a real deployer. It purely does math and stores the result. If you pass wrong parameters, it silently registers a mapping for the wrong address. Frontends MUST verify `addr.code.length > 0` (or `extcodesize(addr) > 0` in assembly) before trusting a registry entry.
 - **`deployerOf` returns `address(0)` for unregistered addresses**: This is the default mapping value, not a sentinel. There is no way to distinguish "never registered" from "registered with deployer = address(0)" (though the latter would require someone to call `registerAddress(address(0), ...)` deliberately).
 - **`create2` bytecode must include constructor args**: When registering a `create2` deployment, the `bytecode` parameter must be the full creation bytecode including ABI-encoded constructor arguments: `abi.encodePacked(type(Contract).creationCode, abi.encode(arg1, arg2, ...))`. Omitting constructor args will compute the wrong address.
 - **Contract nonces start at 1**: When using the `create` overload to register a contract deployed by another contract, remember that contract nonces start at 1 (not 0 like EOAs). The first contract deployed by a factory is at nonce 1.
