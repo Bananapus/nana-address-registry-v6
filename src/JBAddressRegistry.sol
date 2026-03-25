@@ -16,6 +16,10 @@ contract JBAddressRegistry is IJBAddressRegistry {
     // --------------------------- custom errors ------------------------- //
     //*********************************************************************//
 
+    /// @notice Thrown when attempting to register an address that has already been registered.
+    /// @param addr The address that is already registered.
+    error JBAddressRegistry_AlreadyRegistered(address addr);
+
     /// @notice Thrown when a nonce exceeds the maximum value supported by the RLP encoding (uint64 max).
     error JBAddressRegistry_NonceTooLarge(uint256 nonce);
 
@@ -120,6 +124,8 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param addr The deployed contract's address.
     /// @param deployer The deployer's address.
     function _registerAddress(address addr, address deployer) internal {
+        if (deployerOf[addr] != address(0)) revert JBAddressRegistry_AlreadyRegistered(addr);
+
         deployerOf[addr] = deployer;
 
         emit AddressRegistered({addr: addr, deployer: deployer, caller: msg.sender});

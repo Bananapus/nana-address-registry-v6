@@ -158,30 +158,43 @@ contract JBAddressRegistryEdge is Test {
     }
 
     // =========================================================================
-    // Duplicate registration - second registration overwrites first
+    // Duplicate registration - second registration reverts
     // =========================================================================
 
-    /// @notice Registering the same computed address twice overwrites the deployer.
-    function test_duplicateRegistration_overwrites() public {
+    /// @notice Registering the same computed address twice reverts with AlreadyRegistered.
+    function test_duplicateRegistration_reverts() public {
         uint64 nonce = 1;
 
         vm.setNonce(deployer, nonce);
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
-        // First registration.
+        // First registration succeeds.
         registry.registerAddress(deployer, nonce);
         assertEq(registry.deployerOf(deployed), deployer);
 
-        // Register again with a different deployer (same computed address via different params).
-        // Actually, same deployer + nonce = same address. Let's just call register again.
-        address fakeDeployer = makeAddr("fake");
-        registry.registerAddress(fakeDeployer, nonce);
+        // Second registration of the same address reverts.
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_AlreadyRegistered.selector, deployed)
+        );
+        registry.registerAddress(deployer, nonce);
+    }
 
-        // The real deployed address still has the correct deployer.
-        // But the address computed from (fakeDeployer, nonce) is a DIFFERENT address.
-        // So deployed's mapping is unchanged.
-        assertEq(registry.deployerOf(deployed), deployer, "Original registration should be unchanged");
+    /// @notice Registering the same create2 address twice reverts with AlreadyRegistered.
+    function test_duplicateRegistration_create2_reverts() public {
+        Factory factory = new Factory();
+        bytes32 salt = bytes32(uint256(42));
+        address deployed = factory.deploy(salt);
+
+        // First registration succeeds.
+        registry.registerAddress(address(factory), salt, type(MockDeployment).creationCode);
+        assertEq(registry.deployerOf(deployed), address(factory));
+
+        // Second registration of the same address reverts.
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_AlreadyRegistered.selector, deployed)
+        );
+        registry.registerAddress(address(factory), salt, type(MockDeployment).creationCode);
     }
 
     // =========================================================================
