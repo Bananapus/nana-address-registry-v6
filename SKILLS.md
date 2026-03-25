@@ -95,7 +95,7 @@ No arrays, no structs, no linked lists. One mapping, that is all.
 - **`deployerOf` returns `address(0)` for unregistered addresses**: This is the default mapping value, not a sentinel. There is no way to distinguish "never registered" from "registered with deployer = address(0)" (though the latter would require someone to call `registerAddress(address(0), ...)` deliberately).
 - **`create2` bytecode must include constructor args**: When registering a `create2` deployment, the `bytecode` parameter must be the full creation bytecode including ABI-encoded constructor arguments: `abi.encodePacked(type(Contract).creationCode, abi.encode(arg1, arg2, ...))`. Omitting constructor args will compute the wrong address.
 - **Contract nonces start at 1**: When using the `create` overload to register a contract deployed by another contract, remember that contract nonces start at 1 (not 0 like EOAs). The first contract deployed by a factory is at nonce 1.
-- **Solidity version**: The implementation uses `pragma solidity 0.8.26` (exact). The interface uses `pragma solidity ^0.8.0` (flexible) so it can be imported by any 0.8.x consumer.
+- **Solidity version**: The implementation uses `pragma solidity 0.8.28` (exact). The interface uses `pragma solidity ^0.8.0` (flexible) so it can be imported by any 0.8.x consumer.
 
 ## Example: Register a `create` Deployment
 
