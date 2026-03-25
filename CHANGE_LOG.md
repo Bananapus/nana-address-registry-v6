@@ -12,7 +12,7 @@ This document describes all changes between `nana-address-registry` (v5) and `na
 
 ## 1. Breaking Changes
 
-- **Solidity version bump**: `0.8.23` → `0.8.28`. Contracts compiled against v5 ABIs will still be compatible (no ABI-level breaking changes), but the compiler version requirement has changed.
+- **Solidity version bump**: `0.8.23` → `^0.8.26`. Contracts compiled against v5 ABIs will still be compatible (no ABI-level breaking changes), but the compiler version requirement has changed.
 - **Nonce range extended from `uint32` to `uint64`**: In v5, the `_addressFrom` function silently produced incorrect addresses for nonces at or above `2^32`. In v6, nonces up to `uint64.max` are correctly RLP-encoded, and nonces above `uint64.max` revert with `JBAddressRegistry_NonceTooLarge`. Any off-chain tooling that assumed the `uint32` ceiling must be updated.
 
 ## 2. New Features
@@ -87,7 +87,7 @@ No function signatures, parameter types, or return types changed.
 | v5 | v6 | Action Required |
 |---|---|---|
 | `IJBAddressRegistry` | `IJBAddressRegistry` | **None** — ABI-identical. Update import path only. |
-| `JBAddressRegistry` | `JBAddressRegistry` | **None** — ABI-compatible. Deploy new instance compiled with Solidity 0.8.28. |
+| `JBAddressRegistry` | `JBAddressRegistry` | **None** — ABI-compatible. Deploy new instance compiled with Solidity ^0.8.26. |
 | `registerAddress(address, uint256)` | `registerAddress(address, uint256)` | **None** — signature unchanged. Nonces > `uint32` now work correctly; nonces > `uint64` now revert instead of silently producing wrong addresses. |
 | `registerAddress(address, bytes32, bytes)` | `registerAddress(address, bytes32, bytes)` | **None** — signature unchanged. |
 | `deployerOf(address)` | `deployerOf(address)` | **None** — signature unchanged. |
