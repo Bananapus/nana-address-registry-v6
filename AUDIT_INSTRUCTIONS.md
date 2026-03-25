@@ -6,7 +6,7 @@ You are auditing a permissionless address registry for Juicebox V6. The contract
 
 | Setting | Value |
 |---------|-------|
-| Solidity version | 0.8.26 |
+| Solidity version | 0.8.28 |
 | EVM target | cancun |
 | Optimizer | enabled, 200 runs |
 | via-IR | not enabled |
