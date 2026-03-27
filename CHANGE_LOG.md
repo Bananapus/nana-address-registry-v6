@@ -6,7 +6,17 @@ This document describes all changes between `nana-address-registry` (v5) and `na
 
 - **Nonce range extended from `uint32` to `uint64`**: Fixes silent address miscalculation for large nonces — previously truncated without error, now correctly RLP-encodes up to `uint64` and reverts above.
 - **New `NonceTooLarge` error**: Explicit revert replaces silent truncation for nonces exceeding `uint64.max`.
+- **New `ZeroDeployer` error**: Both `registerAddress` overloads revert if `deployer == address(0)`.
 - **No ABI-breaking changes**: Interface and function signatures are identical — only the internal nonce encoding logic changed.
+
+## ABI Status
+
+This repo is intentionally close to ABI-stable across v5 → v6:
+- external function selectors are unchanged;
+- event signature is unchanged;
+- the ABI-surface additions that most off-chain tooling will notice are the new custom errors `JBAddressRegistry_NonceTooLarge(uint256)` and `JBAddressRegistry_ZeroDeployer()`.
+
+For most integrations, this is an import/address upgrade rather than a contract-interface rewrite.
 
 ---
 
@@ -18,6 +28,10 @@ This document describes all changes between `nana-address-registry` (v5) and `na
 ## 2. New Features
 
 - **Extended nonce support (uint40 through uint64)**: Four new RLP encoding branches handle nonces in the ranges `uint40`, `uint48`, `uint56`, and `uint64`, covering any realistic Ethereum account nonce.
+- **No calling-pattern changes**: Both registration flows remain the same:
+  - `registerAddress(address deployer, uint256 nonce)` for `create`
+  - `registerAddress(address deployer, bytes32 salt, bytes memory bytecode)` for `create2`
+  Off-chain callers do not need new arguments or a new event subscription pattern.
 
 ## 3. Event Changes
 
@@ -32,10 +46,24 @@ event AddressRegistered(address indexed addr, address indexed deployer, address 
 | Error | v5 | v6 |
 |---|---|---|
 | `JBAddressRegistry_NonceTooLarge(uint256 nonce)` | Does not exist | **Added** — reverts when `nonce > type(uint64).max` |
+| `JBAddressRegistry_ZeroDeployer()` | Does not exist | **Added** — reverts when `deployer == address(0)` in either `registerAddress` overload |
+
+Unchanged and still relevant:
+- `JBAddressRegistry_AlreadyRegistered(address addr)` still guards duplicate registration attempts.
 
 In v5, passing a nonce larger than `uint32` fell through to the `else` branch, which cast the nonce to `uint32`, silently truncating it and producing an incorrect address. v6 replaces this silent truncation with an explicit revert.
 
-## 5. Implementation Changes (Non-Interface)
+## 5. Function Surface
+
+All external function signatures are unchanged, which means ABI consumers can usually migrate by swapping package/import paths:
+
+| Function | v5 | v6 | Integration impact |
+|---|---|---|---|
+| `deployerOf(address)` | Same | Same | No code changes beyond import/address updates |
+| `registerAddress(address,uint256)` | Same | Same | `create` registration still works; high nonces now succeed through `uint64.max` |
+| `registerAddress(address,bytes32,bytes)` | Same | Same | `create2` flow unchanged |
+
+## 6. Implementation Changes (Non-Interface)
 
 ### `_addressFrom` — RLP nonce encoding
 
@@ -82,7 +110,7 @@ The v6 interface (`IJBAddressRegistry`) adds full NatDoc documentation that was 
 
 No function signatures, parameter types, or return types changed.
 
-## 6. Migration Table
+## 7. Migration Table
 
 | v5 | v6 | Action Required |
 |---|---|---|
@@ -92,3 +120,11 @@ No function signatures, parameter types, or return types changed.
 | `registerAddress(address, bytes32, bytes)` | `registerAddress(address, bytes32, bytes)` | **None** — signature unchanged. |
 | `deployerOf(address)` | `deployerOf(address)` | **None** — signature unchanged. |
 | (no error) | `JBAddressRegistry_NonceTooLarge(uint256)` | **New** — callers passing nonces > `uint64.max` must handle this revert. |
+| (no error) | `JBAddressRegistry_ZeroDeployer()` | **New** — callers passing `address(0)` as deployer must handle this revert. |
+
+Practical migration checklist:
+- Update the package/import path from v5 to v6.
+- Keep existing ABI encoders/decoders; the external surface is unchanged.
+- If you predict `create` addresses off-chain, remove any hardcoded `uint32` nonce ceiling assumption.
+- Handle `JBAddressRegistry_NonceTooLarge` if you expose arbitrary nonce input to users or tooling.
+- Handle `JBAddressRegistry_ZeroDeployer` if callers might pass `address(0)` as the deployer.

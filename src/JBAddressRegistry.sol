@@ -23,6 +23,9 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @notice Thrown when a nonce exceeds the maximum value supported by the RLP encoding (uint64 max).
     error JBAddressRegistry_NonceTooLarge(uint256 nonce);
 
+    /// @notice Thrown when attempting to register with `address(0)` as the deployer.
+    error JBAddressRegistry_ZeroDeployer();
+
     //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
@@ -124,6 +127,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param addr The deployed contract's address.
     /// @param deployer The deployer's address.
     function _registerAddress(address addr, address deployer) internal {
+        if (deployer == address(0)) revert JBAddressRegistry_ZeroDeployer();
         if (deployerOf[addr] != address(0)) revert JBAddressRegistry_AlreadyRegistered(addr);
 
         deployerOf[addr] = deployer;
