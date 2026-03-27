@@ -235,13 +235,16 @@ contract JBAddressRegistryEdge is Test {
     // address(0) deployer
     // =========================================================================
 
-    /// @notice Registration with address(0) as deployer succeeds (permissionless).
-    function test_zeroAddressDeployer_succeeds() public {
-        // This should not revert - the registry is permissionless and doesn't validate.
+    /// @notice Registration with address(0) as deployer reverts with `ZeroDeployer`.
+    function test_zeroAddressDeployer_reverts() public {
+        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
         registry.registerAddress(address(0), 1);
+    }
 
-        // The computed address for (address(0), nonce=1) gets mapped to address(0).
-        // We just verify no revert and the mapping is set.
+    /// @notice Create2 registration with address(0) as deployer reverts with `ZeroDeployer`.
+    function test_zeroAddressDeployer_create2_reverts() public {
+        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
+        registry.registerAddress(address(0), bytes32(uint256(42)), hex"60006000f3");
     }
 
     // =========================================================================
