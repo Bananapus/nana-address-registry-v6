@@ -1,4 +1,21 @@
-# RISKS.md -- nana-address-registry-v6
+# Juicebox Address Registry Risk Register
+
+This file focuses on the registry's core promise: recording claimed deployer linkage for deterministically derived contracts. The main risks are misuse, incorrect assumptions about what registration means, and collisions between social trust and on-chain truth.
+
+## How to use this file
+
+- Read `Priority risks` first; the biggest risks here are almost all interpretive, not balance-sheet failures.
+- Use the detailed sections to distinguish what the registry proves from what users may incorrectly infer from it.
+- Treat `Invariants to Verify` as the minimal safety envelope for deterministic registration.
+
+## Priority risks
+
+| Priority | Risk | Why it matters | Primary controls |
+|----------|------|----------------|------------------|
+| P1 | Over-trusting registration as approval | The registry proves deployer linkage, not code safety or ecosystem endorsement. Users can still trust malicious deployments. | Clear docs, UI labeling, and strict separation between proof of origin and proof of safety. |
+| P1 | Incorrect deployment-parameter assumptions | Deterministic verification is only as good as the deployment parameters supplied. Wrong assumptions create false negatives or confusing operator workflows. | Strong test coverage around CREATE and CREATE2 derivation and explicit documentation. |
+| P2 | Registry completeness assumptions | Useful contracts may remain unregistered; absence from the registry is not proof of absence or malice. | Operational guidance for clients and integrators to treat registration as additive evidence only. |
+
 
 ## 1. Trust Assumptions
 
