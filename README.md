@@ -1,99 +1,77 @@
 # Juicebox Address Registry
 
-Knowing who deployed a contract is the first step toward trusting it. This registry lets anyone prove a contract's deployer on-chain -- no access control and no admin keys.
+`@bananapus/address-registry-v6` is a permissionless registry that records which deployer created a contract. It is meant to make deployer provenance visible on-chain, especially for hooks and helper contracts that users may need to trust before interacting with them.
 
-`JBAddressRegistry` maps contract addresses to their deployers using deterministic address computation. Provide the deployer address and deployment parameters, and the registry verifies the relationship and stores it permanently. Frontend clients can then look up any registered contract to see who deployed it, which is especially useful for vetting Juicebox pay and cash-out hooks before interacting with them.
+Architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)
 
-## Deployed Address
+## Overview
 
-`JBAddressRegistry` is deployed at the same address on all supported networks via deterministic `create2` deployment:
+The registry supports both `create` and `create2` style deployments:
 
-```
-0x2d9b78cb37ca724cfb9b32cd8e9a5dc1c88bc7bb
-```
+- for `create`, it reconstructs the deployed address from the deployer and nonce
+- for `create2`, it reconstructs the deployed address from the deployer, salt, and deployment bytecode
 
-| Network | Chain ID |
-|---------|----------|
-| Ethereum | 1 |
-| Optimism | 10 |
-| Arbitrum | 42161 |
-| Base | 8453 |
-| Ethereum Sepolia | 11155111 |
-| Optimism Sepolia | 11155420 |
-| Arbitrum Sepolia | 421614 |
-| Base Sepolia | 84532 |
+Because the address is computed deterministically, registrations do not require access control. Anyone can submit the correct deployment inputs, and the registry records the verified deployer for the computed address.
 
-## Architecture
+Use this repo when deployer provenance matters. Do not confuse it with an allowlist, audit registry, or trust oracle.
 
-| Contract | Description |
-|----------|-------------|
-| `JBAddressRegistry` | Standalone registry. Computes deployed addresses deterministically from deployer parameters and stores the deployer in `deployerOf`. No constructor arguments, no access control, no external dependencies. |
+If the question is "is this hook safe?" this repo can only tell you who deployed it, not whether the code is good.
 
-### Interface
+## Key Contract
 
-| Type | Description |
-|------|-------------|
-| `IJBAddressRegistry` | Interface exposing `deployerOf`, both `registerAddress` overloads, and the `AddressRegistered` event. |
+| Contract | Role |
+| --- | --- |
+| `JBAddressRegistry` | Standalone registry that stores `deployerOf[address]` and exposes overloaded `registerAddress` entrypoints. |
 
-### How It Works
+## Mental Model
 
-Anyone can register a contract by providing its deployer and deployment parameters:
+The registry is intentionally narrow:
 
-- **`create` deployments**: Provide the deployer address and the nonce at the time of deployment. The registry reconstructs the address using RLP encoding (the same encoding the EVM uses internally to compute `create` addresses).
-- **`create2` deployments**: Provide the deployer address, the `create2` salt, and the full deployment bytecode (creation code + encoded constructor arguments). The registry computes `keccak256(0xff ++ deployer ++ salt ++ keccak256(bytecode))`.
+1. reconstruct an address from deployment inputs
+2. bind that address to a deployer once
+3. expose the result for other systems and clients
 
-In both cases, the registry stores the mapping `deployerOf[computedAddress] = deployer` and emits an `AddressRegistered` event. Frontend clients can then look up any contract's deployer to verify trust.
-
-No access control is needed -- only the correct deployer + parameters can produce a given address, so registrations cannot be faked.
-
-```solidity
-// Register a contract deployed via create.
-registry.registerAddress(deployer, nonce);
-
-// Register a contract deployed via create2.
-registry.registerAddress(deployer, salt, bytecode);
-
-// Look up who deployed a contract.
-address deployer = registry.deployerOf(contractAddress);
-```
-
-### Events
-
-| Event | Fields | Emitted When |
-|-------|--------|-------------|
-| `AddressRegistered` | `address indexed addr`, `address indexed deployer`, `address caller` | A contract address is registered via either `registerAddress` overload. `caller` is `msg.sender`, which may differ from the deployer. |
-
-### Risks
-
-Hooks have token minting access, making malicious hooks dangerous. A registered deployer does not guarantee a hook is safe -- it only tells you who deployed it. Clients should warn project owners and users about any potential for unintended or adversarial behavior, especially for unknown hooks.
-
-Deployers can be exploited or act maliciously. Clients should still communicate risk to users even when the deployer is a known entity.
-
-### Limitations
-
-- The `_addressFrom` function for `create` addresses uses RLP encoding that only supports nonces up to `uint64` max (18,446,744,073,709,551,615). Higher nonces revert with `JBAddressRegistry_NonceTooLarge`. In practice, this limit is unreachable.
-- Re-registration is prevented: registering the same computed address again reverts with `JBAddressRegistry_AlreadyRegistered`. Only the first registration is accepted.
-- Registration is permissionless -- anyone can call `registerAddress`, not just the deployer. Security relies entirely on deterministic address computation.
-
-## Deployment
-
-The deploy script uses [Sphinx](https://github.com/sphinx-labs/sphinx) for deterministic multi-chain deployment. The registry is deployed via `create2` with the salt `_JBAddressRegistryV6_`, ensuring the same address on every chain. The script skips deployment if the bytecode is already present at the computed address.
-
-A helper library `AddressRegistryDeploymentLib` is provided in `script/helpers/` to resolve deployed addresses from Sphinx deployment artifacts at runtime.
+Anything beyond that is out of scope by design.
 
 ## Install
 
 ```bash
-npm install
+npm install @bananapus/address-registry-v6
 ```
 
-## Develop
+## Development
 
-| Command | Description |
-|---------|-------------|
-| `forge build` | Compile contracts |
-| `forge test` | Run unit tests |
-| `FOUNDRY_PROFILE=CI forge test` | Run fork tests (requires `RPC_ETHEREUM_MAINNET` env var) |
-| `forge coverage --match-path "./src/*.sol" --report lcov --report summary` | Generate coverage report |
-| `npm run deploy:mainnets` | Propose mainnet deployment via Sphinx |
-| `npm run deploy:testnets` | Propose testnet deployment via Sphinx |
+```bash
+npm install
+forge build
+forge test
+```
+
+Useful scripts:
+
+- `npm run test:fork`
+- `npm run deploy:mainnets`
+- `npm run deploy:testnets`
+
+## Deployment Notes
+
+The deploy script uses Sphinx for deterministic deployment. This package is intentionally small and independent because many other repos use it to record clone factories and helper deployments.
+
+## Repository Layout
+
+```text
+src/
+  JBAddressRegistry.sol
+  interfaces/
+test/
+  unit, edge, fork, audit, and regression coverage
+script/
+  Deploy.s.sol
+  helpers/
+```
+
+## Risks And Notes
+
+- provenance is not the same thing as safety; a known deployer can still deploy unsafe code
+- registrations are first-write only, so bad operational processes around initial registration can be sticky
+- the `create` address path relies on nonce reconstruction and intentionally rejects unrealistic nonce ranges

@@ -2,6 +2,32 @@
 
 Admin privileges and their scope in nana-address-registry-v6.
 
+## At A Glance
+
+| Item | Details |
+|------|---------|
+| Scope | Permissionless deployer registration and lookup only. There is no privileged admin surface. |
+| Operators | Anyone can register address/deployer relationships; clients decide which deployers they trust. |
+| Highest-risk actions | Relying on stale cached registry data or treating registry entries as trust endorsements instead of raw claims. |
+| Recovery posture | Registry entries can be overwritten but not deleted. Operational recovery is client-side: re-check entries, maintain trusted deployer lists, or migrate consumers to a new registry. |
+
+## Routine Operations
+
+- Re-check `deployerOf()` at time of use instead of caching it indefinitely.
+- Pair registry lookups with a separate trusted-deployer allowlist in clients or indexing infrastructure.
+- Treat every registration as permissionless input, not proof that the caller was authorized by the deployer.
+
+## One-Way Or High-Risk Actions
+
+- There is no pause, owner override, or deletion path.
+- A later registration can overwrite an earlier mapping for the same computed address.
+- The registry does not verify that code is deployed at the registered address.
+
+## Recovery Notes
+
+- If client trust assumptions change, fix the client or indexer. The contract itself cannot block or roll back bad registrations.
+- If the ecosystem needs different trust guarantees, the recovery path is a new registry design and client migration, not an admin action here.
+
 ## Roles
 
 None. `JBAddressRegistry` has no owner, no admin, and no access control. The contract does not inherit from `Ownable`, `AccessControl`, or any permissioned pattern.

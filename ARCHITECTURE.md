@@ -1,57 +1,48 @@
-# nana-address-registry-v6 — Architecture
+# Architecture
 
 ## Purpose
 
-Juicebox projects can attach arbitrary hook contracts (pay hooks, cashout hooks, 721 tier hooks, etc.) that execute during payments, cashouts, and payouts. A malicious hook could steal funds or mislead users. Frontends need a way to answer the question: "Was this hook deployed by a trusted deployer like `JB721TiersHookDeployer`?"
+`nana-address-registry-v6` is a tiny trust-attestation primitive. It records who deployed a contract by recomputing the deployed address from CREATE or CREATE2 inputs and storing the verified deployer on-chain.
 
-`JBAddressRegistry` solves this by letting contracts deployed via `create` or `create2` publicly register their deployer's address. A frontend can then call `deployerOf(hookAddress)` and check the result against its own list of trusted deployers — displaying warnings or blocking interactions for hooks with unknown origins.
+## Boundaries
 
-## Contract Map
+- The repo does not assess contract safety.
+- It does not manage upgrades, ownership, or deployment permissions.
+- It only answers one question: "which deployer could have created this address?"
 
-```
-src/
-├── JBAddressRegistry.sol     — Registry: registerAddress (create/create2), deployerOf mapping
-└── interfaces/
-    └── IJBAddressRegistry.sol — Interface
-```
+## Main Components
 
-## Key Operations
+| Component | Responsibility |
+| --- | --- |
+| `JBAddressRegistry` | Verifies deterministic address derivation and stores `deployerOf[address]` |
+| `IJBAddressRegistry` | Minimal public interface for registration and lookup |
 
-### Registration (create)
-```
-Deployer → JBAddressRegistry.registerAddress(deployer, nonce)
-  → Compute address via RLP encoding of [deployer, nonce]
-  → Store deployerOf[computedAddress] = deployer
-  → Emit AddressRegistered
-```
+## Runtime Model
 
-### Registration (create2)
-```
-Deployer → JBAddressRegistry.registerAddress(deployer, salt, bytecode)
-  → Compute address via keccak256(0xff ++ deployer ++ salt ++ keccak256(bytecode))
-  → Store deployerOf[computedAddress] = deployer
-  → Emit AddressRegistered
+```text
+caller
+  -> provides deployer plus CREATE nonce or CREATE2 salt+bytecode
+  -> registry recomputes the target address
+  -> registry stores the deployer for that address if it was not already registered
 ```
 
-### Verification
-```
-Frontend → JBAddressRegistry.deployerOf(hookAddress)
-  → Returns deployer address (or address(0) if unregistered)
-  → Frontend checks deployer against trusted deployer list
-```
+## Critical Invariants
 
-## Design Decisions
+- Registration is permissionless because correctness comes from deterministic address derivation, not caller authority.
+- Re-registration must stay impossible.
+- CREATE and CREATE2 derivations must match EVM address derivation exactly; this repo is useless if the reconstruction is even slightly wrong.
 
-**Deployer verification, not a whitelist.** The registry records *who* deployed a contract, not *whether* a contract is approved. This keeps the registry permissionless and neutral — any deployer can register, and trust decisions are made by each frontend independently. There is no governance or admin role.
+## Where Complexity Lives
 
-**Both `create` and `create2` support.** Deployers that use `create` (nonce-based) and `create2` (salt + bytecode) both exist in the Juicebox ecosystem. Supporting both ensures any deployer can register its contracts regardless of deployment strategy.
-
-**No validation beyond hash match.** The registry does not check that registered addresses contain code, implement a particular interface, or were recently deployed. It only verifies that the provided deployer + nonce/salt/bytecode deterministically produce the claimed address. This keeps the contract simple and gas-efficient — frontends already perform their own trust checks on the deployer address.
-
-**Anyone can call `registerAddress`.** Registration is not restricted to the deployer itself. Any account that knows the deployer address and nonce (or salt + bytecode) can register a contract. This is safe because the mapping is deterministic — providing incorrect inputs simply computes a different address, not a false registration for the target contract.
+- Almost all of the risk is concentrated in a tiny amount of derivation logic.
+- The repo is simple enough that overengineering is a bigger risk than underengineering.
 
 ## Dependencies
 
-- `@sphinx-labs/plugins` — Deployment tooling (devDependency only)
+- None that matter semantically beyond Solidity's address derivation rules
 
-No runtime Solidity dependencies — this is a standalone contract.
+## Safe Change Guide
+
+- Treat derivation logic as cryptographic plumbing. Prefer no change over clever change.
+- If you touch nonce handling or bytecode hashing, add or retain tests for both CREATE and CREATE2 paths.
+- Do not turn this registry into a trust oracle. Keep the scope narrow.
