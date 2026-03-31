@@ -2,33 +2,44 @@
 
 ## Who This Repo Serves
 
-- deployers publishing deterministic contract addresses
-- integrators verifying where a contract came from
-- auditors checking provenance across factories and CREATE2 deployments
+- deployers that want on-chain provenance for helper contracts and hooks
+- integrators checking who deployed an existing address
+- auditors verifying deterministic deployment claims
 
-## Journey 1: Register A Deterministic Deployment
+## Journey 1: Register A `CREATE` Deployment
 
-**Starting state:** a factory or deployer is creating contracts and wants a canonical provenance record.
+**Starting state:** you know the deploying address and nonce for a contract already created with `create`.
 
-**Success:** the deployed address is mapped back to the deployer that created it.
-
-**Flow**
-1. Deploy the contract with `create` or `create2`.
-2. Call the appropriate `registerAddress(...)` overload with the deployer information and deployment inputs needed to reconstruct the address.
-3. Emit the registry event so downstream tooling can index the deployment.
-4. Use the registry as the source of truth when other repos need to prove where a clone or hook came from.
-
-## Journey 2: Resolve Provenance For An Existing Address
-
-**Starting state:** you have a contract address and need to know whether it is an official deployment from a known factory.
-
-**Success:** you can programmatically confirm the deployer of record.
+**Success:** the registry stores the verified deployer for the computed contract address.
 
 **Flow**
-1. Query the registry for the address in question.
-2. Compare the returned deployer against the factory or deployer you trust.
-3. Use that answer to admit or reject the address inside higher-level integrations.
+1. Call the `registerAddress` overload for `create` deployments with the deployer and nonce.
+2. `JBAddressRegistry` reconstructs the expected deployed address.
+3. If the reconstruction matches a real address and no one registered it before, the registry stores `deployerOf[address]`.
+
+## Journey 2: Register A `CREATE2` Deployment
+
+**Starting state:** you know the deployer, salt, and init code for a deterministic deployment.
+
+**Success:** the registry records the verified deployer for the deterministic address without any privileged access.
+
+**Flow**
+1. Call the `registerAddress` overload for `create2`.
+2. The registry hashes deployer, salt, and deployment bytecode to reconstruct the deterministic address.
+3. It stores the deployer for that address if the registration is valid and unused.
+
+## Journey 3: Resolve Provenance For An Existing Address
+
+**Starting state:** an integration or auditor sees a contract address and wants to know who deployed it.
+
+**Success:** the caller can query `deployerOf[address]` and get provenance if someone registered it correctly.
+
+**Flow**
+1. Look up the address in the registry.
+2. If a deployer is present, use that as provenance evidence for who originated the deployment.
+3. Treat absence as "not registered," not as a trust verdict on the code.
 
 ## Hand-Offs
 
-- This repo is a utility, not an end-user product. It matters most when reading [nana-buyback-hook-v6](../nana-buyback-hook-v6/USER_JOURNEYS.md), [univ4-lp-split-hook-v6](../univ4-lp-split-hook-v6/USER_JOURNEYS.md), and other factory-driven packages.
+- Use this repo together with the relevant deployer repo when provenance of clones, hooks, or helper contracts matters.
+- Use [deploy-all-v6](../deploy-all-v6/USER_JOURNEYS.md) or a package-specific deployer repo when the question is about deployment sequencing rather than provenance recording.
