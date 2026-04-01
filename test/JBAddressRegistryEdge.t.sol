@@ -113,8 +113,7 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Nonce at max uint64 - highest supported nonce. Does not deploy (VM limitation).
     function test_nonceBoundary_maxUint64() public {
-        // Cannot use _verifyCreateRegistration because vm.setNonce cannot handle uint64.max.
-        // Just verify registerAddress does not revert at the boundary.
+        vm.etch(_predictedAddress(deployer, type(uint64).max), hex"00");
         registry.registerAddress(deployer, type(uint64).max);
     }
 
@@ -122,8 +121,8 @@ contract JBAddressRegistryEdge is Test {
     // Mismatched parameters - wrong deployer/nonce registers wrong address
     // =========================================================================
 
-    /// @notice Registering with wrong nonce maps to a different (non-deployed) address.
-    function test_mismatchedNonce_registersDifferentAddress() public {
+    /// @notice Registering with wrong nonce reverts because the computed address has no code.
+    function test_mismatchedNonce_revertsWhenComputedAddressHasNoCode() public {
         uint64 correctNonce = 5;
 
         // Set nonce and deploy.
@@ -131,18 +130,17 @@ contract JBAddressRegistryEdge is Test {
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
-        // Register with wrong nonce - should map to a different address.
         uint256 wrongNonce = 6;
-        registry.registerAddress(deployer, wrongNonce);
-
-        // The deployed contract should NOT be mapped (wrong nonce was used).
-        assertEq(
-            registry.deployerOf(deployed), address(0), "Deployed address should not be registered with wrong nonce"
+        address wrongAddress = vm.computeCreateAddress(deployer, wrongNonce);
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_AddressNotDeployed.selector, wrongAddress)
         );
+        registry.registerAddress(deployer, wrongNonce);
+        assertEq(registry.deployerOf(deployed), address(0), "wrong nonce must not backfill a registration");
     }
 
-    /// @notice Registering with wrong deployer maps to a different address.
-    function test_mismatchedDeployer_registersDifferentAddress() public {
+    /// @notice Registering with wrong deployer reverts because the computed address has no code.
+    function test_mismatchedDeployer_revertsWhenComputedAddressHasNoCode() public {
         address wrongDeployer = makeAddr("wrongDeployer");
         uint64 nonce = 1;
 
@@ -150,11 +148,12 @@ contract JBAddressRegistryEdge is Test {
         vm.prank(deployer);
         address deployed = address(new MockDeployment());
 
-        // Register with wrong deployer.
+        address wrongAddress = vm.computeCreateAddress(wrongDeployer, nonce);
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_AddressNotDeployed.selector, wrongAddress)
+        );
         registry.registerAddress(wrongDeployer, nonce);
-
-        // The deployed address should not be registered.
-        assertEq(registry.deployerOf(deployed), address(0), "Should not be registered with wrong deployer");
+        assertEq(registry.deployerOf(deployed), address(0), "wrong deployer must not backfill a registration");
     }
 
     // =========================================================================
@@ -212,8 +211,8 @@ contract JBAddressRegistryEdge is Test {
     // Create2 - wrong bytecode maps to wrong address
     // =========================================================================
 
-    /// @notice Create2 registration with wrong bytecode produces different address.
-    function test_create2_wrongBytecode_registersDifferentAddress() public {
+    /// @notice Create2 registration with wrong bytecode reverts because the computed address has no code.
+    function test_create2_wrongBytecode_revertsWhenComputedAddressHasNoCode() public {
         Factory factory = new Factory();
         bytes32 salt = bytes32(uint256(42));
 
@@ -223,8 +222,11 @@ contract JBAddressRegistryEdge is Test {
         registry.registerAddress(address(factory), salt, type(MockDeployment).creationCode);
         assertEq(registry.deployerOf(deployed), address(factory), "Correct create2 registration should work");
 
-        // Now try registering with wrong bytecode - produces different computed address.
         bytes memory wrongBytecode = hex"deadbeef";
+        address wrongAddress = vm.computeCreate2Address(salt, keccak256(wrongBytecode), address(factory));
+        vm.expectRevert(
+            abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_AddressNotDeployed.selector, wrongAddress)
+        );
         registry.registerAddress(address(factory), salt, wrongBytecode);
 
         // The deployed address's mapping should be unchanged (wrong bytecode = different address).
@@ -287,7 +289,7 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Fuzz: any nonce within uint64 range should not revert on registerAddress.
     function testFuzz_registerAddress_anyUint64Nonce(uint64 nonce) public {
-        // Just verify registerAddress does not revert for any uint64 nonce.
+        vm.etch(_predictedAddress(deployer, uint256(nonce)), hex"00");
         registry.registerAddress(deployer, uint256(nonce));
     }
 
@@ -308,6 +310,7 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Nonces in the uint32-uint64 range now succeed (extended support).
     function test_nonceInUint40Range_succeeds() public {
+        vm.etch(_predictedAddress(deployer, uint256(type(uint40).max)), hex"00");
         registry.registerAddress(deployer, uint256(type(uint40).max));
     }
 
@@ -341,6 +344,45 @@ contract JBAddressRegistryEdge is Test {
             _deployer,
             string.concat("Registration failed for nonce ", vm.toString(nonce))
         );
+    }
+
+    function _predictedAddress(address origin, uint256 nonce) internal pure returns (address addr) {
+        bytes memory data;
+        if (nonce == 0x00) {
+            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, bytes1(0x80));
+        } else if (nonce <= 0x7f) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xd6), bytes1(0x94), origin, uint8(nonce));
+        } else if (nonce <= 0xff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xd7), bytes1(0x94), origin, bytes1(0x81), uint8(nonce));
+        } else if (nonce <= 0xffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xd8), bytes1(0x94), origin, bytes1(0x82), uint16(nonce));
+        } else if (nonce <= 0xffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xd9), bytes1(0x94), origin, bytes1(0x83), uint24(nonce));
+        } else if (nonce <= 0xffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xda), bytes1(0x94), origin, bytes1(0x84), uint32(nonce));
+        } else if (nonce <= 0xffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xdb), bytes1(0x94), origin, bytes1(0x85), uint40(nonce));
+        } else if (nonce <= 0xffffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xdc), bytes1(0x94), origin, bytes1(0x86), uint48(nonce));
+        } else if (nonce <= 0xffffffffffffff) {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xdd), bytes1(0x94), origin, bytes1(0x87), uint56(nonce));
+        } else {
+            // forge-lint: disable-next-line(unsafe-typecast)
+            data = abi.encodePacked(bytes1(0xde), bytes1(0x94), origin, bytes1(0x88), uint64(nonce));
+        }
+        bytes32 hash = keccak256(data);
+        assembly {
+            mstore(0, hash)
+            addr := mload(0)
+        }
     }
 }
 

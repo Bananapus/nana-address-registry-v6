@@ -26,6 +26,10 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @notice Thrown when attempting to register with `address(0)` as the deployer.
     error JBAddressRegistry_ZeroDeployer();
 
+    /// @notice Thrown when attempting to register an address before code exists there.
+    /// @param addr The undeployed address being registered.
+    error JBAddressRegistry_AddressNotDeployed(address addr);
+
     //*********************************************************************//
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
@@ -128,6 +132,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param deployer The deployer's address.
     function _registerAddress(address addr, address deployer) internal {
         if (deployer == address(0)) revert JBAddressRegistry_ZeroDeployer();
+        if (addr.code.length == 0) revert JBAddressRegistry_AddressNotDeployed(addr);
         if (deployerOf[addr] != address(0)) revert JBAddressRegistry_AlreadyRegistered(addr);
 
         deployerOf[addr] = deployer;
