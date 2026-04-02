@@ -103,15 +103,19 @@ contract JBAddressRegistry is IJBAddressRegistry {
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xda), bytes1(0x94), origin, bytes1(0x84), uint32(nonce));
         } else if (nonce <= 0xffffffffff) {
+            // Nonces above uint32 need 5 payload bytes, so RLP moves to the 0x85 length prefix.
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdb), bytes1(0x94), origin, bytes1(0x85), uint40(nonce));
         } else if (nonce <= 0xffffffffffff) {
+            // Keep extending the nonce payload width as values cross the uint40 boundary.
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdc), bytes1(0x94), origin, bytes1(0x86), uint48(nonce));
         } else if (nonce <= 0xffffffffffffff) {
+            // This branch covers the last intermediate RLP width before the full uint64 payload.
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xdd), bytes1(0x94), origin, bytes1(0x87), uint56(nonce));
         } else {
+            // The largest supported CREATE nonce uses the 8-byte uint64 payload with a 0x88 length prefix.
             // forge-lint: disable-next-line(unsafe-typecast)
             data = abi.encodePacked(bytes1(0xde), bytes1(0x94), origin, bytes1(0x88), uint64(nonce));
         }
