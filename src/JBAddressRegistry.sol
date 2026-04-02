@@ -135,8 +135,11 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param addr The deployed contract's address.
     /// @param deployer The deployer's address.
     function _registerAddress(address addr, address deployer) internal {
+        // The registry only records non-zero deployers.
         if (deployer == address(0)) revert JBAddressRegistry_ZeroDeployer();
+        // The address must already contain runtime code before it can be registered.
         if (addr.code.length == 0) revert JBAddressRegistry_AddressNotDeployed(addr);
+        // Each address can only be registered once.
         if (deployerOf[addr] != address(0)) revert JBAddressRegistry_AlreadyRegistered(addr);
 
         deployerOf[addr] = deployer;
