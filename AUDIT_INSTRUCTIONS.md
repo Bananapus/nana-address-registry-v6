@@ -2,7 +2,7 @@
 
 This repo is a small registry, but it participates in deployer verification across the ecosystem. Treat incorrect registration as a security boundary failure.
 
-## Objective
+## Audit Objective
 
 Find issues that:
 - let callers register contracts under the wrong deployer
@@ -15,13 +15,31 @@ Find issues that:
 In scope:
 - `src/JBAddressRegistry.sol`
 - `src/interfaces/IJBAddressRegistry.sol`
-- deployment scripts in `script/`
+- all deployment helpers in `script/`
 
-## System Model
+## Start Here
+
+1. `src/JBAddressRegistry.sol`
+2. `script/Deploy.s.sol`
+
+## Security Model
 
 The registry maps deployed addresses to the deployer that created them. Downstream repos use it to:
 - validate provenance for clones or deterministically deployed instances
 - discover whether a contract came from an approved deployer path
+
+## Roles And Privileges
+
+| Role | Powers | How constrained |
+|------|--------|-----------------|
+| Deployer | Register contracts as its outputs | Must prove authentic deployment provenance |
+| Registry reader | Trust provenance for privileged decisions | Must not observe spoofable or mutable history |
+
+## Integration Assumptions
+
+| Dependency | Assumption | What breaks if wrong |
+|------------|------------|----------------------|
+| Approved deployers | Produce the addresses they claim | Downstream provenance gates become meaningless |
 
 ## Critical Invariants
 
@@ -34,19 +52,15 @@ No aliasing or overwrite path should let a later caller replace provenance unexp
 3. Registration metadata is stable
 Nonce, salt, or address truncation must not allow collisions or stale reads.
 
-## Threat Model
+## Attack Surfaces
 
-Prioritize:
+- registration entrypoints that rely on deployer provenance
+- overwrite and replay paths
+- deterministic deployment assumptions
 - zero-address or malformed registration attempts
-- deterministic deployment edge cases
-- overwrite or replay behavior
-- any assumption that `msg.sender` is sufficient proof without deployment linkage
 
-## Build And Verification
+## Verification
 
-Standard workflow:
 - `npm install`
 - `forge build`
 - `forge test`
-
-Tests already focus on zero deployers and nonce-truncation regressions. A meaningful finding here should show downstream trust in the registry becoming misplaced, not just a cosmetic mismatch.

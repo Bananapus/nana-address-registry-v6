@@ -3,7 +3,7 @@
 ## Use This File For
 
 - Use this file when the task involves deployer provenance, `create` or `create2` registration logic, or determining what the registry does and does not prove.
-- Start here, then open the registry contract or tests that match the registration mode under review.
+- Start here, then decide whether the issue is `create` address derivation, `create2` derivation, or misuse of provenance as a trust signal.
 
 ## Read This Next
 
@@ -11,8 +11,9 @@
 |---|---|
 | Repo overview and intended guarantees | [`README.md`](./README.md), [`ARCHITECTURE.md`](./ARCHITECTURE.md) |
 | Registry implementation | [`src/JBAddressRegistry.sol`](./src/JBAddressRegistry.sol) |
+| Runtime and operational assumptions | [`references/runtime.md`](./references/runtime.md), [`references/operations.md`](./references/operations.md) |
 | Interfaces and deployment | [`src/interfaces/`](./src/interfaces/), [`script/Deploy.s.sol`](./script/Deploy.s.sol) |
-| Edge, fork, or regression coverage | [`test/JBAddressRegistry.t.sol`](./test/JBAddressRegistry.t.sol), [`test/JBAddressRegistryEdge.t.sol`](./test/JBAddressRegistryEdge.t.sol), [`test/regression/`](./test/regression/) |
+| Edge and fork coverage | [`test/JBAddressRegistry.t.sol`](./test/JBAddressRegistry.t.sol), [`test/JBAddressRegistryEdge.t.sol`](./test/JBAddressRegistryEdge.t.sol), [`test/JBAddressRegistry_Fork.t.sol`](./test/JBAddressRegistry_Fork.t.sol) |
 
 ## Repo Map
 
@@ -36,4 +37,5 @@ Permissionless on-chain provenance registry that records which deployer created 
 
 - Start in [`src/JBAddressRegistry.sol`](./src/JBAddressRegistry.sol). This repo is intentionally small, so most questions should collapse quickly to the core contract.
 - Treat provenance and safety as separate questions. The registry only proves who deployed something.
+- Registration is first-write only and requires code to already exist at the computed address. Treat both as part of the registry’s guarantee, not just implementation details.
 - When a task involves wrong or missing registry data, verify the registration inputs before assuming a contract bug.

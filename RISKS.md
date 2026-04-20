@@ -1,42 +1,58 @@
 # Juicebox Address Registry Risk Register
 
-This file focuses on the registry's core promise: recording claimed deployer linkage for deterministically derived contracts. The main risks are misuse, incorrect assumptions about what registration means, and collisions between social trust and on-chain truth.
+This file focuses on what `JBAddressRegistry` actually proves: deterministic address provenance claims. The core risk is not funds loss inside the registry; it is consumers over-reading the meaning of a registration entry.
 
 ## How to use this file
 
-- Read `Priority risks` first; the biggest risks here are almost all interpretive, not balance-sheet failures.
-- Use the detailed sections to distinguish what the registry proves from what users may incorrectly infer from it.
-- Treat `Invariants to Verify` as the minimal safety envelope for deterministic registration.
+- Read `Priority risks` first; most failures here are interpretive and integration-driven.
+- Distinguish "address can be derived from these deployment inputs" from "this deployment is trusted".
+- Treat `Invariants to Verify` as the narrow correctness envelope of the registry itself.
 
 ## Priority risks
 
 | Priority | Risk | Why it matters | Primary controls |
 |----------|------|----------------|------------------|
-| P1 | Over-trusting registration as approval | The registry proves deployer linkage, not code safety or ecosystem endorsement. Users can still trust malicious deployments. | Clear docs, UI labeling, and strict separation between proof of origin and proof of safety. |
-| P1 | Incorrect deployment-parameter assumptions | Deterministic verification is only as good as the deployment parameters supplied. Wrong assumptions create false negatives or confusing operator workflows. | Strong test coverage around CREATE and CREATE2 derivation and explicit documentation. |
-| P2 | Registry completeness assumptions | Useful contracts may remain unregistered; absence from the registry is not proof of absence or malice. | Operational guidance for clients and integrators to treat registration as additive evidence only. |
-
+| P1 | Over-trusting registration as safety approval | A registered deployer mapping does not mean the contract is audited, canonical, or safe. | UIs must label registration as provenance evidence only. |
+| P1 | First-writer capture of a valid provenance claim | The registry records the first valid claim for an address and never updates it. | Operational discipline for trusted deployers and curated allowlists for consumers. |
+| P2 | Completeness assumptions | Unregistered contracts can still be legitimate; absence from the registry is not a proof of malice. | Treat registry data as additive metadata, not an allowlist. |
 
 ## 1. Trust Assumptions
 
-- **Self-registration.** Anyone can register any address. The registry does NOT verify that the caller actually deployed the contract. It only verifies that the computed address matches the provided deployer/nonce or deployer/salt/bytecode parameters.
-- **Frontend trust.** Frontends must maintain their own list of trusted deployers. The registry provides the mapping, not a trust judgment.
+- **Deterministic address formulas.** The contract trusts its CREATE and CREATE2 address-derivation logic to match EVM semantics.
+- **Consumer trust policy.** The registry does not decide which deployers are trusted. Every consumer must maintain that policy externally.
 
 ## 2. Known Risks
 
-- **False registration.** Anyone can call `registerAddress` with arbitrary deployer/nonce values, registering a computed address with a deployer that did not actually deploy it. Consumers must verify the deployer is trusted, not just that a mapping exists.
-- **No removal mechanism.** Once registered, an entry cannot be removed. Re-registration of the same address reverts with `JBAddressRegistry_AlreadyRegistered`.
-- **CREATE2 vs CREATE1 trust model.** CREATE1 registrations (`registerAddress(deployer, nonce)`) can be spoofed: anyone who knows the deployer address and nonce can register the computed address without being the deployer. CREATE2 registrations (`registerAddress(deployer, salt, bytecode)`) have the same trust model — knowing the parameters is sufficient to register. The function accepts raw deployment bytecode and hashes it internally (`keccak256(bytecode)`) for the CREATE2 address computation. In both cases, the registry only proves "this address COULD have been deployed by this deployer with these parameters", not "this deployer DID deploy this address". Consumers must verify the deployer is trusted independently.
-- **Frontend trust example.** A malicious actor could register `deployerOf[uniswapRouter] = attackerDeployer` if they find a `(deployer, nonce)` or `(deployer, salt, bytecode)` combination that computes to the Uniswap router address and register it before the legitimate deployer does. Only the first registration is accepted; subsequent attempts revert with `JBAddressRegistry_AlreadyRegistered`. Frontends that display "deployed by X" based on `deployerOf` should cross-reference against a curated allowlist of trusted deployers.
+- **Caller identity is irrelevant.** Anyone may call `registerAddress(...)`. The registry proves that an address is consistent with supplied deployment parameters, not that the caller was the deployer.
+- **First registration wins.** Once `deployerOf[addr]` is set, later registrations revert with `JBAddressRegistry_AlreadyRegistered`, even if a different valid provenance claim exists.
+- **No pre-registration of future deployments.** `registerAddress(...)` requires `addr.code.length != 0`. The registry only records provenance for contracts that already exist on-chain; it cannot reserve a deterministic CREATE2 address ahead of deployment.
+- **No removal or correction path.** The registry is intentionally append-only per address. Mistakes are sticky.
+- **Registration is provenance, not endorsement.** A mapping like `deployerOf[hook] = someFactory` says nothing about code safety, upgradeability, audit status, or whether the deployer itself is trustworthy.
+- **Operational lag matters.** If a trusted deployer forgets to register immediately, someone else can publish the first valid claim for that address.
 
-## 3. Invariants to Verify
+## 3. Integration Risks
 
-- `deployerOf[addr]` always corresponds to a valid deployer/nonce pair that produces `addr` (if registered via `registerAddress`).
-- `create2` registrations: `deployerOf[addr]` corresponds to a valid deployer/salt/bytecode combination whose `keccak256(bytecode)` produces `addr` via the CREATE2 formula.
-- Registration idempotency: `deployerOf[addr]` reflects the first and only registration. Subsequent attempts to register the same address revert with `JBAddressRegistry_AlreadyRegistered`.
+- **Frontends must pair registry data with a trusted-deployer set.** Displaying `deployerOf` without a trust list can mislead users into treating any registered provenance as "official".
+- **CREATE and CREATE2 claims are both parameter-based.** In either mode, users should think "the address is compatible with these inputs", not "the registry witnessed deployment".
+- **Off-chain explorers should preserve uncertainty.** A better label is "registered deployer claim" than "deployed by", unless the explorer independently verified the transaction history.
 
-## 4. Accepted Behaviors
+## 4. Invariants to Verify
 
-### 4.1 RLP encoding correctness is well-tested and bounded
+- `deployerOf[addr]` is set at most once.
+- CREATE registrations only succeed for addresses derivable from the provided `(deployer, nonce)`.
+- CREATE2 registrations only succeed for addresses derivable from the provided `(deployer, salt, bytecode)`.
+- `_addressFrom` remains correct for the supported nonce range and reverts outside that range.
 
-The `_addressFrom` function manually implements RLP encoding for nonces up to uint64. The nonce is capped at uint64 max with an explicit revert, and the encoding logic is a well-tested pattern. This is not an open risk.
+## 5. Accepted Behaviors
+
+### 5.1 The registry does not authenticate the registrant
+
+This is intentional. `JBAddressRegistry` is a deterministic provenance registry, not a permissioned attestation service.
+
+### 5.2 Unregistered does not mean unsafe
+
+The registry is useful metadata, but it is not complete coverage of all legitimate deployments. Consumers should not infer that an unregistered address is malicious solely because no entry exists.
+
+### 5.3 The registry is retrospective, not a reservation layer
+
+This is intentional. A deterministic address can only be registered after code already exists there. Consumers should not expect `JBAddressRegistry` to signal future deployment intent or to protect an undeployed CREATE2 address from later first-writer capture once deployment happens.

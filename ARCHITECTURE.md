@@ -2,47 +2,83 @@
 
 ## Purpose
 
-`nana-address-registry-v6` is a tiny trust-attestation primitive. It records who deployed a contract by recomputing the deployed address from CREATE or CREATE2 inputs and storing the verified deployer on-chain.
+`nana-address-registry-v6` is a narrow provenance primitive. It records which deployer could have created a contract address by recomputing CREATE or CREATE2 derivation inputs and storing the verified result on-chain.
 
-## Boundaries
+## System Overview
 
-- The repo does not assess contract safety.
-- It does not manage upgrades, ownership, or deployment permissions.
-- It only answers one question: "which deployer could have created this address?"
+The repo is intentionally small. `JBAddressRegistry` accepts deterministic deployment inputs, reconstructs the resulting address, and records the deployer if that address has not already been registered. It does not judge code safety, manage upgrades, or gate deployments.
 
-## Main Components
+## Core Invariants
 
-| Component | Responsibility |
-| --- | --- |
-| `JBAddressRegistry` | Verifies deterministic address derivation and stores `deployerOf[address]` |
-| `IJBAddressRegistry` | Minimal public interface for registration and lookup |
+- Registration is permissionless because correctness comes from deterministic derivation, not caller authority.
+- A contract address can only be registered once.
+- Registration must fail until runtime code actually exists at the derived address.
+- CREATE and CREATE2 derivation must match EVM rules exactly.
 
-## Runtime Model
+## Modules
+
+| Module | Responsibility | Notes |
+| --- | --- | --- |
+| `JBAddressRegistry` | Address derivation and first-write provenance storage | Main contract |
+| `IJBAddressRegistry` | Minimal lookup and registration interface | External surface |
+
+## Trust Boundaries
+
+- The registry attests to deterministic provenance, not code quality.
+- It does not manage ownership, upgrades, or allowlists.
+- External systems may trust its recorded provenance, so derivation correctness is the whole product.
+
+## Critical Flows
+
+### Register
 
 ```text
 caller
-  -> provides deployer plus CREATE nonce or CREATE2 salt+bytecode
+  -> supplies deployer plus CREATE nonce or CREATE2 salt and bytecode
   -> registry recomputes the target address
-  -> registry stores the deployer for that address if it was not already registered
+  -> registry records the deployer if the address was previously unregistered
 ```
 
-## Critical Invariants
+## Accounting Model
 
-- Registration is permissionless because correctness comes from deterministic address derivation, not caller authority.
-- Re-registration must stay impossible.
-- CREATE and CREATE2 derivations must match EVM address derivation exactly; this repo is useless if the reconstruction is even slightly wrong.
+No economic accounting lives here. The only critical state is `deployerOf[address]`.
 
-## Where Complexity Lives
+## Security Model
 
-- Almost all of the risk is concentrated in a tiny amount of derivation logic.
-- The repo is simple enough that overengineering is a bigger risk than underengineering.
-
-## Dependencies
-
-- None that matter semantically beyond Solidity's address derivation rules
+- The risk is concentrated in a small amount of address-derivation logic.
+- The registry records the derived deployer, not the transaction caller. Mixing those concepts would turn provenance into an authority bug.
+- Overengineering is more dangerous than minimal, auditable derivation code.
 
 ## Safe Change Guide
 
-- Treat derivation logic as cryptographic plumbing. Prefer no change over clever change.
-- If you touch nonce handling or bytecode hashing, add or retain tests for both CREATE and CREATE2 paths.
-- Do not turn this registry into a trust oracle. Keep the scope narrow.
+- Treat derivation code like cryptographic plumbing.
+- Keep the undeployed-address check and first-write-only rule intact; they are part of the provenance guarantee, not optional hygiene.
+- If nonce handling or bytecode hashing changes, keep CREATE and CREATE2 tests aligned.
+- Do not expand the repo into an allowlist or trust-oracle system.
+
+## Canonical Checks
+
+- CREATE and CREATE2 derivation correctness:
+  `test/JBAddressRegistry.t.sol`
+- edge-path validation and first-write behavior:
+  `test/JBAddressRegistryEdge.t.sol`
+- pre-registration, frontrun, and undeployed-code defenses:
+  `test/audit/CodexFrontRunRegistrationDoS.t.sol`
+- provenance abuse and zero-deployer edge cases:
+  `test/audit/CodexUnauthorizedRegistrar.t.sol`
+  `test/audit/ZeroDeployerRegistration.t.sol`
+
+## Source Map
+
+- `src/JBAddressRegistry.sol`
+- `src/interfaces/IJBAddressRegistry.sol`
+- `test/JBAddressRegistry.t.sol`
+- `test/JBAddressRegistryEdge.t.sol`
+- `test/audit/CodexFrontRunRegistrationDoS.t.sol`
+- `test/audit/CodexUnauthorizedRegistrar.t.sol`
+- `test/audit/ZeroDeployerRegistration.t.sol`
+- `test/regression/NonceTruncation.t.sol`
+- `script/Deploy.s.sol`
+- `script/helpers/AddressRegistryDeploymentLib.sol`
+- `references/runtime.md`
+- `references/operations.md`
