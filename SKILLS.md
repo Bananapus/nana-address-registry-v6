@@ -31,11 +31,11 @@ Permissionless on-chain provenance registry that records which deployer created 
 ## Reference Files
 
 - Open [`references/runtime.md`](./references/runtime.md) when you need the core guarantees, first-write semantics, or the difference between provenance and trust.
-- Open [`references/operations.md`](./references/operations.md) when you need deployment breadcrumbs, test pointers, or the common stale assumptions around what the registry can verify.
+- Open [`references/operations.md`](./references/operations.md) when you need deployment breadcrumbs, test pointers, or common stale assumptions about what the registry can verify.
 
 ## Working Rules
 
 - Start in [`src/JBAddressRegistry.sol`](./src/JBAddressRegistry.sol). This repo is intentionally small, so most questions should collapse quickly to the core contract.
 - Treat provenance and safety as separate questions. The registry only proves who deployed something.
-- Registration is first-write only and requires code to already exist at the computed address. Treat both as part of the registry’s guarantee, not just implementation details.
+- Registration is first-write only and requires code to already exist at the computed address.
 - When a task involves wrong or missing registry data, verify the registration inputs before assuming a contract bug.

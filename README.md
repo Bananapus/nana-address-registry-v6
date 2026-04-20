@@ -11,12 +11,12 @@ Audit instructions: [AUDIT_INSTRUCTIONS.md](./AUDIT_INSTRUCTIONS.md)
 
 ## Overview
 
-The registry supports both `create` and `create2` style deployments:
+The registry supports both `create` and `create2` deployments:
 
 - for `create`, it reconstructs the deployed address from the deployer and nonce
 - for `create2`, it reconstructs the deployed address from the deployer, salt, and deployment bytecode
 
-Because the address is computed deterministically, registrations do not require access control. Anyone can submit the correct deployment inputs, and the registry records the deployer for the computed address after confirming code already exists there.
+Because the address is computed deterministically, registrations do not need access control. Anyone can submit the correct deployment inputs, and the registry records the deployer for the computed address after confirming code already exists there.
 
 Use this repo when deployer provenance matters. Do not confuse it with an allowlist, audit registry, or trust oracle.
 
@@ -36,7 +36,7 @@ The registry is intentionally narrow:
 2. bind that address to a deployer once
 3. expose the result for other systems and clients
 
-Anything beyond that is out of scope by design.
+Anything beyond that is out of scope.
 
 ## Read These Files First
 
@@ -47,14 +47,14 @@ Anything beyond that is out of scope by design.
 
 ## Integration Traps
 
-- provenance is only meaningful if callers also know what the deployer is supposed to be trusted for
-- permissionless registration is intentional, so integrations should verify the computed inputs rather than assuming caller authority
+- provenance is only useful if callers also know what the deployer is trusted for
+- permissionless registration is intentional, so integrations should verify the computed inputs rather than assume caller authority
 - `create` nonce reconstruction and `create2` salt-bytecode reconstruction are different trust paths and should be reasoned about separately
 
 ## Where State Lives
 
-- deployer provenance lives in `JBAddressRegistry`
-- deployment truth still lives outside this repo in the target chain history and bytecode inputs
+- deployer provenance: `JBAddressRegistry`
+- deployment truth: the target chain history and bytecode inputs outside this repo
 
 ## High-Signal Tests
 
@@ -101,9 +101,9 @@ script/
 
 ## Risks And Notes
 
-- provenance is not the same thing as safety; a known deployer can still deploy unsafe code
-- registrations are first-write only, so bad operational processes around initial registration can be sticky
-- the `create` address path relies on nonce reconstruction and intentionally rejects unrealistic nonce ranges
+- provenance is not the same as safety; a known deployer can still deploy unsafe code
+- registrations are first-write only, so bad initial registration is sticky
+- the `create` path relies on nonce reconstruction and intentionally rejects unrealistic nonce ranges
 
 ## For AI Agents
 
