@@ -2,15 +2,13 @@
 
 ## Repo Purpose
 
-This repo records deployer provenance for contracts whose address can be reconstructed from `create` or `create2` inputs.
-It does not say whether a deployment is safe, canonical, or approved. It only says who deployed it when the inputs are
-correct and someone registered them.
+This repo records deployer provenance for contracts whose address can be reconstructed from `create` or `create2` inputs. It does not say whether a deployment is safe, canonical, or approved. It only says who deployed it when the inputs are correct and someone registered them.
 
 ## Primary Actors
 
 - deployers who want onchain provenance for hooks, clones, and helper contracts
 - integrators who need to verify who deployed an address before trusting it
-- auditors who want a deterministic provenance check rather than offchain screenshots
+- auditors who want a deterministic provenance check instead of offchain screenshots
 
 ## Key Surfaces
 
@@ -43,7 +41,7 @@ correct and someone registered them.
 
 **Actor:** deployer, operator, or auditor with the original deterministic deployment inputs.
 
-**Intent:** bind a `create2` deployment to its deployer without needing privileged access.
+**Intent:** bind a `create2` deployment to its deployer without privileged access.
 
 **Preconditions**
 - the contract was deployed with `create2`

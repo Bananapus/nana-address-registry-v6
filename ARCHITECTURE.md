@@ -2,7 +2,7 @@
 
 ## Purpose
 
-`nana-address-registry-v6` is a narrow provenance primitive. It records which deployer could have created a contract address by recomputing CREATE or CREATE2 derivation inputs and storing the verified result on-chain.
+`nana-address-registry-v6` is a small provenance primitive. It records which deployer could have created a contract address by recomputing `CREATE` or `CREATE2` inputs and storing the verified result on-chain.
 
 ## System Overview
 
@@ -10,10 +10,10 @@ The repo is intentionally small. `JBAddressRegistry` accepts deterministic deplo
 
 ## Core Invariants
 
-- Registration is permissionless because correctness comes from deterministic derivation, not caller authority.
-- A contract address can only be registered once.
-- Registration must fail until runtime code actually exists at the derived address.
-- CREATE and CREATE2 derivation must match EVM rules exactly.
+- registration is permissionless because correctness comes from deterministic derivation, not caller authority
+- a contract address can only be registered once
+- registration must fail until runtime code actually exists at the derived address
+- `CREATE` and `CREATE2` derivation must match EVM rules exactly
 
 ## Modules
 
@@ -24,9 +24,9 @@ The repo is intentionally small. `JBAddressRegistry` accepts deterministic deplo
 
 ## Trust Boundaries
 
-- The registry attests to deterministic provenance, not code quality.
-- It does not manage ownership, upgrades, or allowlists.
-- External systems may trust its recorded provenance, so derivation correctness is the whole product.
+- the registry attests to deterministic provenance, not code quality
+- it does not manage ownership, upgrades, or allowlists
+- external systems may trust its recorded provenance, so derivation correctness is the whole product
 
 ## Critical Flows
 
@@ -41,24 +41,24 @@ caller
 
 ## Accounting Model
 
-No economic accounting lives here. The only critical state is `deployerOf[address]`.
+No economic accounting lives here. The only important state is `deployerOf[address]`.
 
 ## Security Model
 
-- The risk is concentrated in a small amount of address-derivation logic.
-- The registry records the derived deployer, not the transaction caller. Mixing those concepts would turn provenance into an authority bug.
-- Overengineering is more dangerous than minimal, auditable derivation code.
+- the risk is concentrated in a small amount of address-derivation logic
+- the registry records the derived deployer, not the transaction caller
+- overengineering is more dangerous than minimal, auditable derivation code
 
 ## Safe Change Guide
 
-- Treat derivation code like cryptographic plumbing.
-- Keep the undeployed-address check and first-write-only rule intact; they are part of the provenance guarantee, not optional hygiene.
-- If nonce handling or bytecode hashing changes, keep CREATE and CREATE2 tests aligned.
-- Do not expand the repo into an allowlist or trust-oracle system.
+- treat derivation code like cryptographic plumbing
+- keep the undeployed-address check and first-write-only rule intact
+- if nonce handling or bytecode hashing changes, keep `CREATE` and `CREATE2` tests aligned
+- do not expand the repo into an allowlist or trust-oracle system
 
 ## Canonical Checks
 
-- CREATE and CREATE2 derivation correctness:
+- `CREATE` and `CREATE2` derivation correctness:
   `test/JBAddressRegistry.t.sol`
 - edge-path validation and first-write behavior:
   `test/JBAddressRegistryEdge.t.sol`
