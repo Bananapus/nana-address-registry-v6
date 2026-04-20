@@ -1,43 +1,92 @@
 # User Journeys
 
-## Who This Repo Serves
+## Repo Purpose
 
-- deployers that want on-chain provenance for helper contracts and hooks
-- integrators checking who deployed an existing address
-- auditors verifying deterministic deployment claims
+This repo records deployer provenance for contracts whose address can be reconstructed from `create` or `create2` inputs.
+It does not say whether a deployment is safe, canonical, or approved. It only says who deployed it when the inputs are
+correct and someone registered them.
+
+## Primary Actors
+
+- deployers who want onchain provenance for hooks, clones, and helper contracts
+- integrators who need to verify who deployed an address before trusting it
+- auditors who want a deterministic provenance check rather than offchain screenshots
+
+## Key Surfaces
+
+- `JBAddressRegistry`: stores `deployerOf[address]` after reconstructing the target address from deployment inputs
+- `registerAddress(deployer, nonce)` and `registerAddress(deployer, salt, bytecode)`: the two provenance-registration paths
 
 ## Journey 1: Register A `CREATE` Deployment
 
-**Starting state:** you know the deploying address and nonce for a contract already created with `create`.
+**Actor:** deployer, operator, or auditor with the original deployment inputs.
 
-**Success:** the registry stores the verified deployer for the computed contract address.
+**Intent:** bind an already-deployed `create` address to the account that deployed it.
 
-**Flow**
-1. Call the `registerAddress` overload for `create` deployments with the deployer and nonce.
-2. `JBAddressRegistry` reconstructs the expected deployed address.
-3. If the reconstruction matches a real address and no one registered it before, the registry stores `deployerOf[address]`.
+**Preconditions**
+- the contract was deployed with `create`
+- the caller knows the deployer address and nonce used for the deployment
+- the address has not already been registered
+
+**Main Flow**
+1. Call `registerAddress(deployer, nonce)`.
+2. `JBAddressRegistry` reconstructs the deployed address from the deployer and nonce.
+3. If the computed address is valid and unused, the registry stores `deployerOf[address] = deployer`.
+
+**Failure Modes**
+- the nonce does not match the real deployment
+- the computed address has already been registered
+- the nonce exceeds the supported `uint64` range and registration reverts
+- the deployment assumptions are wrong and the reconstructed address is useless
 
 ## Journey 2: Register A `CREATE2` Deployment
 
-**Starting state:** you know the deployer, salt, and init code for a deterministic deployment.
+**Actor:** deployer, operator, or auditor with the original deterministic deployment inputs.
 
-**Success:** the registry records the verified deployer for the deterministic address without any privileged access.
+**Intent:** bind a `create2` deployment to its deployer without needing privileged access.
 
-**Flow**
-1. Call the `registerAddress` overload for `create2`.
-2. The registry hashes deployer, salt, and deployment bytecode to reconstruct the deterministic address.
-3. It stores the deployer for that address if the registration is valid and unused.
+**Preconditions**
+- the contract was deployed with `create2`
+- the caller knows the deployer, salt, and init code
+- the address has not already been registered
+
+**Main Flow**
+1. Call `registerAddress(deployer, salt, bytecode)`.
+2. The registry reconstructs the deterministic address from the standard `create2` formula.
+3. If the address is valid and unused, the registry records the deployer.
+
+**Failure Modes**
+- the bytecode or salt is wrong
+- the address was registered already
+- a third party publishes the first valid provenance claim before the expected deployer registers it
+- operators assume registration proves a contract exists there right now
+- consumers misread provenance as an allowlist or audit stamp
 
 ## Journey 3: Resolve Provenance For An Existing Address
 
-**Starting state:** an integration or auditor sees a contract address and wants to know who deployed it.
+**Actor:** integrator, frontend, or auditor.
 
-**Success:** the caller can query `deployerOf[address]` and get provenance if someone registered it correctly.
+**Intent:** answer "who deployed this?" before trusting a hook, helper, or clone.
 
-**Flow**
-1. Look up the address in the registry.
-2. If a deployer is present, use that as provenance evidence for who originated the deployment.
-3. Treat absence as "not registered," not as a trust verdict on the code.
+**Preconditions**
+- the address was registered previously
+- the caller understands that an empty result means "unknown" rather than "unsafe"
+
+**Main Flow**
+1. Query `deployerOf[address]`.
+2. If a deployer is present, use it as provenance evidence for who originated the deployment.
+3. If no deployer is present, treat the address as unregistered and keep investigating elsewhere.
+4. Pair the result with an external trust list, transaction history, or audit context before relying on the contract.
+
+**Postconditions**
+- downstream reviewers know which deployer or factory to inspect next
+- the trust decision still happens outside this repo
+
+## Trust Boundaries
+
+- this repo only proves registered deployer provenance from deterministic inputs
+- anyone can submit a valid claim, so the mapping authenticates deployment inputs rather than caller identity
+- it does not prove code quality, audit status, or governance approval
 
 ## Hand-Offs
 
