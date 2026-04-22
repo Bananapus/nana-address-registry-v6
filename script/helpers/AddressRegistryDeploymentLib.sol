@@ -72,6 +72,8 @@ library AddressRegistryDeploymentLib {
         string memory deploymentJson =
         // forge-lint: disable-next-line(unsafe-cheatcode)
         vm.readFile(string.concat(path, projectName, "/", networkName, "/", contractName, ".json"));
-        return stdJson.readAddress({json: deploymentJson, key: ".address"});
+        address deployed = stdJson.readAddress({json: deploymentJson, key: ".address"});
+        require(deployed.code.length != 0, "AddressRegistryDeploymentLib: registry has no code");
+        return deployed;
     }
 }
