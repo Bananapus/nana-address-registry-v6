@@ -4,7 +4,6 @@ pragma solidity 0.8.28;
 import {stdJson} from "forge-std/Script.sol";
 import {Vm} from "forge-std/Vm.sol";
 
-import {SphinxConstants, NetworkInfo} from "@sphinx-labs/contracts/contracts/foundry/SphinxConstants.sol";
 import {IJBAddressRegistry} from "../../src/interfaces/IJBAddressRegistry.sol";
 
 struct AddressRegistryDeployment {
@@ -18,21 +17,20 @@ library AddressRegistryDeploymentLib {
     // forge-lint: disable-next-line(screaming-snake-case-const)
     Vm internal constant vm = Vm(VM_ADDRESS);
 
-    function getDeployment(string memory path) internal returns (AddressRegistryDeployment memory deployment) {
-        // get chainId for which we need to get the deployment.
-        uint256 chainId = block.chainid;
+    function getDeployment(string memory path) internal view returns (AddressRegistryDeployment memory deployment) {
+        return getDeployment({path: path, networkName: _networkNameForChainId(block.chainid)});
+    }
 
-        // Deploy to get the constants.
-        // TODO: get constants without deploy.
-        SphinxConstants sphinxConstants = new SphinxConstants();
-        NetworkInfo[] memory networks = sphinxConstants.getNetworkInfoArray();
-
-        for (uint256 _i; _i < networks.length; _i++) {
-            if (networks[_i].chainId == chainId) {
-                return getDeployment({path: path, networkName: networks[_i].name});
-            }
-        }
-
+    /// @dev Returns the Sphinx network name for a given chain ID without deploying SphinxConstants.
+    function _networkNameForChainId(uint256 chainId) internal pure returns (string memory) {
+        if (chainId == 1) return "ethereum";
+        if (chainId == 10) return "optimism";
+        if (chainId == 8453) return "base";
+        if (chainId == 42_161) return "arbitrum";
+        if (chainId == 11_155_111) return "ethereum_sepolia";
+        if (chainId == 11_155_420) return "optimism_sepolia";
+        if (chainId == 84_532) return "base_sepolia";
+        if (chainId == 421_614) return "arbitrum_sepolia";
         revert("ChainID is not (currently) supported by Sphinx.");
     }
 
