@@ -8,7 +8,7 @@ Find issues that:
 
 - let callers register contracts under the wrong deployer
 - break determinism or uniqueness assumptions around registration
-- let a malicious deployer spoof provenance for contracts it did not create
+- let callers spoof provenance for contracts the claimed deployer did not create
 - create truncation-related collisions or stale mapping assumptions
 
 ## Scope
@@ -35,8 +35,8 @@ The registry maps deployed addresses to the deployer that created them. Downstre
 
 | Role | Powers | How constrained |
 |------|--------|-----------------|
-| Deployer | Register contracts as its outputs | Must prove authentic deployment provenance |
-| Registry reader | Trust provenance for privileged decisions | Must not observe spoofable or mutable history |
+| Registrant | Register contracts by supplying deterministic deployment inputs | Must supply inputs that reconstruct an already-deployed contract address |
+| Registry reader | Interpret provenance for downstream decisions | Must pair provenance with an external trust model |
 
 ## Integration Assumptions
 
@@ -47,7 +47,7 @@ The registry maps deployed addresses to the deployer that created them. Downstre
 ## Critical Invariants
 
 1. Provenance cannot be forged.  
-   Only the actual deployer path the registry intends to trust may create a successful registration for a contract.
+   Only inputs matching the actual deployer path may create a successful registration for a contract.
 2. One contract maps to one authoritative deployer record.  
    No aliasing or overwrite path should let a later caller replace provenance unexpectedly.
 3. Registration metadata is stable.  

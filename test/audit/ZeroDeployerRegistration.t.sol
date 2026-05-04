@@ -3,7 +3,7 @@ pragma solidity 0.8.28;
 
 import {Test} from "forge-std/Test.sol";
 
-import {JBAddressRegistry} from "src/JBAddressRegistry.sol";
+import {JBAddressRegistry} from "../../src/JBAddressRegistry.sol";
 
 contract ZeroDeployerRegistrationTest is Test {
     JBAddressRegistry internal registry;
