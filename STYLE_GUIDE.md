@@ -419,7 +419,7 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v4
         with:
-          node-version: 22.4.x
+          node-version: 25.9.0
       - name: Install npm dependencies
         run: npm install --omit=dev
       - name: Install Foundry
@@ -470,13 +470,13 @@ jobs:
           submodules: recursive
       - uses: actions/setup-node@v4
         with:
-          node-version: latest
+          node-version: 25.9.0
       - name: Install npm dependencies
         run: npm install --omit=dev
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
       - name: Run slither
-        uses: crytic/slither-action@v0.3.1
+        uses: crytic/slither-action@v0.4.1
         with:
             slither-config: slither-ci.config.json
             fail-on: medium
@@ -515,7 +515,7 @@ jobs:
   },
   "dependencies": { ... },
   "devDependencies": {
-    "@sphinx-labs/plugins": "^0.33.2"
+    "@sphinx-labs/plugins": "0.33.3"
   }
 }
 ```

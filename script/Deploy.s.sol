@@ -4,7 +4,7 @@ pragma solidity 0.8.28;
 import {Sphinx} from "@sphinx-labs/contracts/contracts/foundry/SphinxPlugin.sol";
 import {Script} from "forge-std/Script.sol";
 
-import {JBAddressRegistry} from "src/JBAddressRegistry.sol";
+import {JBAddressRegistry} from "../src/JBAddressRegistry.sol";
 
 contract Deploy is Script, Sphinx {
     bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistryV6_";
