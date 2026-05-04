@@ -3,14 +3,12 @@ pragma solidity 0.8.28;
 
 import {IJBAddressRegistry} from "./interfaces/IJBAddressRegistry.sol";
 
-/// @notice Frontend clients need a way to verify that a Juicebox contract has a deployer they trust.
-/// `JBAddressRegistry` allows any contract deployed with `create` or `create2` to publicly register its deployer's
-/// address. Whoever deploys
-/// a contract is responsible for registering it.
-/// @dev `JBAddressRegistry` is intended for registering the deployers of Juicebox pay/redeem hooks, but does not
-/// enforce adherence to an interface, and can be used for any `create`/`create2` deployer.
-/// @dev The addresses of the deployed contracts are computed deterministically based on the deployer's address, and a
-/// nonce (for `create`) or `create2` salt and deployment bytecode (for `create2`).
+/// @notice A public registry that records who deployed a given contract. Anyone can register a contract's deployer,
+/// and anyone can look it up — enabling frontend clients and other contracts to verify that a Juicebox hook or
+/// extension was deployed by a trusted source.
+/// @dev Supports both `create` (deployer + nonce) and `create2` (deployer + salt + bytecode) deployments. The
+/// registry computes the expected contract address deterministically and verifies that code exists there before
+/// recording the deployer. Each address can only be registered once.
 contract JBAddressRegistry is IJBAddressRegistry {
     //*********************************************************************//
     // --------------------------- custom errors ------------------------- //
@@ -34,19 +32,20 @@ contract JBAddressRegistry is IJBAddressRegistry {
     // --------------------- public stored properties -------------------- //
     //*********************************************************************//
 
-    /// @notice Returns the deployer of a given contract which has been registered.
+    /// @notice Look up who deployed a registered contract. Returns `address(0)` if the contract hasn't been
+    /// registered.
     /// @dev Whoever deploys a contract is responsible for registering it.
-    /// @custom:param addr The address of the contract to get the deployer of.
+    /// @custom:param addr The address of the contract to check.
     mapping(address addr => address deployer) public override deployerOf;
 
     //*********************************************************************//
     // ---------------------- external transactions ---------------------- //
     //*********************************************************************//
 
-    /// @notice Register a deployed contract's address.
-    /// @dev The contract must be deployed using `create`.
-    /// @param deployer The address of the contract's deployer.
-    /// @param nonce The nonce used to deploy the contract.
+    /// @notice Register a contract that was deployed with `create` (standard deployment). The registry computes the
+    /// expected address from the deployer and nonce, then verifies code exists there.
+    /// @param deployer The address that deployed the contract.
+    /// @param nonce The deployer's transaction nonce at the time of deployment.
     function registerAddress(address deployer, uint256 nonce) external override {
         // Calculate the address of the contract, assuming it was deployed using `create` with the specified nonce.
         address hook = _addressFrom({origin: deployer, nonce: nonce});
@@ -55,14 +54,14 @@ contract JBAddressRegistry is IJBAddressRegistry {
         _registerAddress({addr: hook, deployer: deployer});
     }
 
-    /// @notice Register a deployed contract's address.
-    /// @dev The contract must be deployed using `create2`.
+    /// @notice Register a contract that was deployed with `create2` (deterministic deployment). The registry computes
+    /// the expected address from the deployer, salt, and bytecode, then verifies code exists there.
     /// @dev The `create2` salt is determined by the deployer's logic. The deployment bytecode can be retrieved offchain
     /// (from the deployment transaction) or onchain (with `abi.encodePacked(type(deployedContract).creationCode,
     /// abi.encode(constructorArguments))`).
-    /// @param deployer The address of the contract's deployer.
-    /// @param salt The `create2` salt used to deploy the contract.
-    /// @param bytecode The contract's deployment bytecode, including the constructor arguments.
+    /// @param deployer The address that deployed the contract.
+    /// @param salt The `create2` salt used during deployment.
+    /// @param bytecode The full deployment bytecode, including constructor arguments.
     function registerAddress(address deployer, bytes32 salt, bytes calldata bytecode) external override {
         // Calculate the address of the contract using the provided `create2` salt and deployment bytecode.
         address hook =
