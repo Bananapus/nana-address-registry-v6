@@ -16,7 +16,7 @@ contract ZeroDeployerRegistrationTest is Test {
     function test_createRegistrationWithZeroDeployerReverts() external {
         uint256 nonce = 1;
 
-        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector, address(0)));
         registry.registerAddress(address(0), nonce);
     }
 
@@ -25,7 +25,7 @@ contract ZeroDeployerRegistrationTest is Test {
         bytes32 salt = keccak256("salt");
         bytes memory bytecode = hex"60006000f3";
 
-        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector, address(0)));
         registry.registerAddress(address(0), salt, bytecode);
     }
 }
