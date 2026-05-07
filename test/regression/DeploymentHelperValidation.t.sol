@@ -16,13 +16,14 @@ contract DeploymentLibCaller {
         string memory networkName
     )
         external
+        view
         returns (AddressRegistryDeployment memory)
     {
         return AddressRegistryDeploymentLib.getDeployment({path: path, networkName: networkName});
     }
 }
 
-/// @notice Tests M-40: Deployment helper rejects stale artifacts pointing to non-contract addresses.
+/// @notice Tests Deployment helper rejects stale artifacts pointing to non-contract addresses.
 contract DeploymentHelperValidationTest is Test {
     DeploymentLibCaller internal caller;
 
@@ -35,12 +36,12 @@ contract DeploymentHelperValidationTest is Test {
         address eoa = makeAddr("staleEOA");
         string memory json = string.concat('{"address":"', vm.toString(eoa), '"}');
 
-        string memory dir = "test/audit/tmp-eoa/nana-address-registry-v6/testnet/";
+        string memory dir = "test/regression/tmp-eoa/nana-address-registry-v6/testnet/";
         vm.createDir(dir, true);
         vm.writeFile(string.concat(dir, "JBAddressRegistry.json"), json);
 
         vm.expectRevert("AddressRegistryDeploymentLib: registry has no code");
-        caller.getDeployment({path: "test/audit/tmp-eoa/", networkName: "testnet"});
+        caller.getDeployment({path: "test/regression/tmp-eoa/", networkName: "testnet"});
 
         vm.removeFile(string.concat(dir, "JBAddressRegistry.json"));
     }
@@ -51,11 +52,11 @@ contract DeploymentHelperValidationTest is Test {
         vm.etch(registry, hex"6080604052");
         string memory json = string.concat('{"address":"', vm.toString(registry), '"}');
 
-        string memory dir = "test/audit/tmp-contract/nana-address-registry-v6/testnet/";
+        string memory dir = "test/regression/tmp-contract/nana-address-registry-v6/testnet/";
         vm.createDir(dir, true);
         vm.writeFile(string.concat(dir, "JBAddressRegistry.json"), json);
 
-        caller.getDeployment({path: "test/audit/tmp-contract/", networkName: "testnet"});
+        caller.getDeployment({path: "test/regression/tmp-contract/", networkName: "testnet"});
 
         vm.removeFile(string.concat(dir, "JBAddressRegistry.json"));
     }

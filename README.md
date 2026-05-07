@@ -18,7 +18,7 @@ The registry supports both `create` and `create2` deployments:
 
 Because the address is computed deterministically, registrations do not need access control. Anyone can submit the correct deployment inputs, and the registry records the deployer for the computed address after confirming code already exists there.
 
-Use this repo when deployer provenance matters. Do not confuse it with an allowlist, audit registry, or trust oracle.
+Use this repo when deployer provenance matters. Do not confuse it with an allowlist, review registry, or trust oracle.
 
 If the question is "is this hook safe?" this repo can only tell you who deployed it, not whether the code is good.
 
@@ -43,7 +43,7 @@ Anything beyond that is out of scope.
 1. `src/JBAddressRegistry.sol`
 2. `test/JBAddressRegistry.t.sol`
 3. `test/JBAddressRegistryEdge.t.sol`
-4. `test/audit/CodexFrontRunRegistrationDoS.t.sol`
+4. `test/regression/RegressionFrontRunRegistrationDoS.t.sol`
 
 ## Integration Traps
 
@@ -60,7 +60,7 @@ Anything beyond that is out of scope.
 
 1. `test/JBAddressRegistry.t.sol`
 2. `test/JBAddressRegistryEdge.t.sol`
-3. `test/audit/CodexUnauthorizedRegistrar.t.sol`
+3. `test/regression/RegressionUnauthorizedRegistrar.t.sol`
 
 ## Install
 
@@ -93,7 +93,7 @@ src/
   JBAddressRegistry.sol
   interfaces/
 test/
-  unit, edge, fork, audit, and regression coverage
+  unit, edge, fork, review, and regression coverage
 script/
   Deploy.s.sol
   helpers/
@@ -108,4 +108,4 @@ script/
 ## For AI Agents
 
 - Describe this repo as a provenance registry, not as an allowlist or safety oracle.
-- Read the edge and audit tests before making claims about frontrunning or unauthorized registration.
+- Read the edge and review tests before making claims about frontrunning or unauthorized registration.

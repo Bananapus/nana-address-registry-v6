@@ -239,13 +239,13 @@ contract JBAddressRegistryEdge is Test {
 
     /// @notice Registration with address(0) as deployer reverts with `ZeroDeployer`.
     function test_zeroAddressDeployer_reverts() public {
-        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector, address(0)));
         registry.registerAddress(address(0), 1);
     }
 
     /// @notice Create2 registration with address(0) as deployer reverts with `ZeroDeployer`.
     function test_zeroAddressDeployer_create2_reverts() public {
-        vm.expectRevert(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector);
+        vm.expectRevert(abi.encodeWithSelector(JBAddressRegistry.JBAddressRegistry_ZeroDeployer.selector, address(0)));
         registry.registerAddress(address(0), bytes32(uint256(42)), hex"60006000f3");
     }
 

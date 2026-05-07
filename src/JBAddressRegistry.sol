@@ -22,7 +22,8 @@ contract JBAddressRegistry is IJBAddressRegistry {
     error JBAddressRegistry_NonceTooLarge(uint256 nonce);
 
     /// @notice Thrown when attempting to register with `address(0)` as the deployer.
-    error JBAddressRegistry_ZeroDeployer();
+    /// @param deployer The invalid deployer address.
+    error JBAddressRegistry_ZeroDeployer(address deployer);
 
     /// @notice Thrown when attempting to register an address before code exists there.
     /// @param addr The undeployed address being registered.
@@ -80,7 +81,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @param deployer The deployer's address.
     function _registerAddress(address addr, address deployer) internal {
         // The registry only records non-zero deployers.
-        if (deployer == address(0)) revert JBAddressRegistry_ZeroDeployer();
+        if (deployer == address(0)) revert JBAddressRegistry_ZeroDeployer(deployer);
         // The address must already contain runtime code before it can be registered.
         if (addr.code.length == 0) revert JBAddressRegistry_AddressNotDeployed(addr);
         // Each address can only be registered once.
