@@ -1,8 +1,8 @@
-# Review Guide
+# Audit Instructions
 
 This repo is a small registry, but it sits on a deployer-verification boundary across the ecosystem. Treat incorrect registration as a security failure.
 
-## Review Objective
+## Audit Objective
 
 Find issues that:
 
