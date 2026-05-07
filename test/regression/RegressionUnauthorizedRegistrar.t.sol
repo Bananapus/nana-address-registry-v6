@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 
 import {JBAddressRegistry} from "../../src/JBAddressRegistry.sol";
 
-contract CodexUnauthorizedRegistrarTest is Test {
+contract RegressionUnauthorizedRegistrarTest is Test {
     JBAddressRegistry internal registry;
     address internal deployer = makeAddr("deployer");
     address internal attacker = makeAddr("attacker");

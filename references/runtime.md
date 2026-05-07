@@ -16,4 +16,4 @@
 - [`test/JBAddressRegistryEdge.t.sol`](../test/JBAddressRegistryEdge.t.sol) for boundary conditions.
 - [`test/JBAddressRegistry_Fork.t.sol`](../test/JBAddressRegistry_Fork.t.sol) for live assumptions.
 - [`test/regression/NonceTruncation.t.sol`](../test/regression/NonceTruncation.t.sol) for nonce-width and reconstruction regressions.
-- [`test/audit/ZeroDeployerRegistration.t.sol`](../test/audit/ZeroDeployerRegistration.t.sol), [`test/audit/CodexUnauthorizedRegistrar.t.sol`](../test/audit/CodexUnauthorizedRegistrar.t.sol), and [`test/audit/CodexFrontRunRegistrationDoS.t.sol`](../test/audit/CodexFrontRunRegistrationDoS.t.sol) for the abuse cases this repo is expected to resist.
+- [`test/regression/ZeroDeployerRegistration.t.sol`](../test/regression/ZeroDeployerRegistration.t.sol), [`test/regression/RegressionUnauthorizedRegistrar.t.sol`](../test/regression/RegressionUnauthorizedRegistrar.t.sol), and [`test/regression/RegressionFrontRunRegistrationDoS.t.sol`](../test/regression/RegressionFrontRunRegistrationDoS.t.sol) for the abuse cases this repo is expected to resist.

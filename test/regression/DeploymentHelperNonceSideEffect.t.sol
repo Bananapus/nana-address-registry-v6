@@ -28,7 +28,7 @@ contract DeploymentHelperNonceSideEffectTest is Test {
         vm.etch(registry, hex"6080604052");
 
         string memory json = string.concat('{"address":"', vm.toString(registry), '"}');
-        string memory dir = "test/audit/tmp-nonce/nana-address-registry-v6/anvil/";
+        string memory dir = "test/regression/tmp-nonce/nana-address-registry-v6/anvil/";
         string memory file = string.concat(dir, "JBAddressRegistry.json");
 
         vm.createDir(dir, true);
@@ -36,7 +36,7 @@ contract DeploymentHelperNonceSideEffectTest is Test {
 
         uint64 nonceBefore = vm.getNonce(address(caller));
 
-        caller.getDeployment("test/audit/tmp-nonce/");
+        caller.getDeployment("test/regression/tmp-nonce/");
 
         uint64 nonceAfter = vm.getNonce(address(caller));
 

@@ -8,7 +8,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 
 - deployers who want onchain provenance for hooks, clones, and helper contracts
 - integrators who need to verify who deployed an address before trusting it
-- auditors who want a deterministic provenance check instead of offchain screenshots
+- reviewers who want a deterministic provenance check instead of offchain screenshots
 
 ## Key Surfaces
 
@@ -17,7 +17,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 
 ## Journey 1: Register A `CREATE` Deployment
 
-**Actor:** deployer, operator, or auditor with the original deployment inputs.
+**Actor:** deployer, operator, or reviewer with the original deployment inputs.
 
 **Intent:** bind an already-deployed `create` address to the account that deployed it.
 
@@ -39,7 +39,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 
 ## Journey 2: Register A `CREATE2` Deployment
 
-**Actor:** deployer, operator, or auditor with the original deterministic deployment inputs.
+**Actor:** deployer, operator, or reviewer with the original deterministic deployment inputs.
 
 **Intent:** bind a `create2` deployment to its deployer without privileged access.
 
@@ -58,11 +58,11 @@ This repo records deployer provenance for contracts whose address can be reconst
 - the address was registered already
 - a third party publishes the first valid provenance claim before the expected deployer registers it
 - operators assume registration proves a contract exists there right now
-- consumers misread provenance as an allowlist or audit stamp
+- consumers misread provenance as an allowlist or review stamp
 
 ## Journey 3: Resolve Provenance For An Existing Address
 
-**Actor:** integrator, frontend, or auditor.
+**Actor:** integrator, frontend, or reviewer.
 
 **Intent:** answer "who deployed this?" before trusting a hook, helper, or clone.
 
@@ -74,7 +74,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 1. Query `deployerOf[address]`.
 2. If a deployer is present, use it as provenance evidence for who originated the deployment.
 3. If no deployer is present, treat the address as unregistered and keep investigating elsewhere.
-4. Pair the result with an external trust list, transaction history, or audit context before relying on the contract.
+4. Pair the result with an external trust list, transaction history, or review context before relying on the contract.
 
 **Postconditions**
 - downstream reviewers know which deployer or factory to inspect next
@@ -84,7 +84,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 
 - this repo only proves registered deployer provenance from deterministic inputs
 - anyone can submit a valid claim, so the mapping authenticates deployment inputs rather than caller identity
-- it does not prove code quality, audit status, or governance approval
+- it does not prove code quality, review status, or governance approval
 
 ## Hand-Offs
 

@@ -12,7 +12,7 @@ This file covers what `JBAddressRegistry` actually proves: deterministic address
 
 | Priority | Risk | Why it matters | Primary controls |
 |----------|------|----------------|------------------|
-| P1 | Over-trusting registration as safety approval | A registered deployer mapping does not mean the contract is audited, canonical, or safe. | UIs should label registration as provenance evidence only. |
+| P1 | Over-trusting registration as safety approval | A registered deployer mapping does not mean the contract is reviewed, canonical, or safe. | UIs should label registration as provenance evidence only. |
 | P1 | First-writer capture of a valid provenance claim | The registry records the first valid claim for an address and never updates it. | Operational discipline for trusted deployers and curated allowlists for consumers. |
 | P2 | Completeness assumptions | Unregistered contracts can still be legitimate; absence from the registry is not proof of malice. | Treat registry data as additive metadata, not an allowlist. |
 
@@ -27,7 +27,7 @@ This file covers what `JBAddressRegistry` actually proves: deterministic address
 - **First registration wins.** Once `deployerOf[addr]` is set, later registrations revert.
 - **No pre-registration of future deployments.** `registerAddress(...)` requires code to already exist at the computed address.
 - **No removal or correction path.** The registry is intentionally append-only per address.
-- **Registration is provenance, not endorsement.** `deployerOf[hook] = someFactory` says nothing about code safety, upgradeability, audit status, or whether the deployer itself is trustworthy.
+- **Registration is provenance, not endorsement.** `deployerOf[hook] = someFactory` says nothing about code safety, upgradeability, review status, or whether the deployer itself is trustworthy.
 - **Operational lag matters.** If a trusted deployer forgets to register immediately, someone else can publish the first valid claim for that address.
 
 ## 3. Integration Risks

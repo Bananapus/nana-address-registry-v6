@@ -47,7 +47,7 @@ No economic accounting lives here. The only important state is `deployerOf[addre
 
 - the risk is concentrated in a small amount of address-derivation logic
 - the registry records the derived deployer, not the transaction caller
-- overengineering is more dangerous than minimal, auditable derivation code
+- overengineering is more dangerous than minimal, reviewable derivation code
 
 ## Safe Change Guide
 
@@ -63,10 +63,10 @@ No economic accounting lives here. The only important state is `deployerOf[addre
 - edge-path validation and first-write behavior:
   `test/JBAddressRegistryEdge.t.sol`
 - pre-registration, frontrun, and undeployed-code defenses:
-  `test/audit/CodexFrontRunRegistrationDoS.t.sol`
+  `test/regression/RegressionFrontRunRegistrationDoS.t.sol`
 - provenance abuse and zero-deployer edge cases:
-  `test/audit/CodexUnauthorizedRegistrar.t.sol`
-  `test/audit/ZeroDeployerRegistration.t.sol`
+  `test/regression/RegressionUnauthorizedRegistrar.t.sol`
+  `test/regression/ZeroDeployerRegistration.t.sol`
 
 ## Source Map
 
@@ -74,9 +74,9 @@ No economic accounting lives here. The only important state is `deployerOf[addre
 - `src/interfaces/IJBAddressRegistry.sol`
 - `test/JBAddressRegistry.t.sol`
 - `test/JBAddressRegistryEdge.t.sol`
-- `test/audit/CodexFrontRunRegistrationDoS.t.sol`
-- `test/audit/CodexUnauthorizedRegistrar.t.sol`
-- `test/audit/ZeroDeployerRegistration.t.sol`
+- `test/regression/RegressionFrontRunRegistrationDoS.t.sol`
+- `test/regression/RegressionUnauthorizedRegistrar.t.sol`
+- `test/regression/ZeroDeployerRegistration.t.sol`
 - `test/regression/NonceTruncation.t.sol`
 - `script/Deploy.s.sol`
 - `script/helpers/AddressRegistryDeploymentLib.sol`
