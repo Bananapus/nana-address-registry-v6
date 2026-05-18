@@ -10,7 +10,7 @@ contract Deploy is Script, Sphinx {
     bytes32 constant ADDRESS_REGISTRY_SALT = "_JBAddressRegistryV6_";
 
     function configureSphinx() public override {
-        // TODO: Update to contain JB Emergency Developers
+        // Safe owners and threshold are resolved by the Sphinx project config.
         sphinxConfig.projectName = "nana-address-registry-v6";
         sphinxConfig.mainnets = ["ethereum", "optimism", "base", "arbitrum"];
         sphinxConfig.testnets = ["ethereum_sepolia", "optimism_sepolia", "base_sepolia", "arbitrum_sepolia"];
