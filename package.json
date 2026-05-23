@@ -22,5 +22,15 @@
   },
   "devDependencies": {
     "@sphinx-labs/plugins": "0.33.3"
-  }
+  },
+  "files": [
+    "foundry.lock",
+    "foundry.toml",
+    "references/",
+    "remappings.txt",
+    "script/Deploy.s.sol",
+    "script/helpers/",
+    "sphinx.lock",
+    "src/"
+  ]
 }
