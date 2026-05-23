@@ -1,6 +1,6 @@
 {
   "name": "@bananapus/address-registry-v6",
-  "version": "0.0.27",
+  "version": "0.0.28",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -24,13 +24,10 @@
     "@sphinx-labs/plugins": "0.33.3"
   },
   "files": [
-    "foundry.lock",
     "foundry.toml",
     "references/",
     "remappings.txt",
-    "script/Deploy.s.sol",
-    "script/helpers/",
-    "sphinx.lock",
+    "script/",
     "src/"
   ]
 }
