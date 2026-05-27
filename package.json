@@ -1,10 +1,10 @@
 {
   "name": "@bananapus/address-registry-v6",
-  "version": "0.0.28",
+  "version": "0.0.29",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Bananapus/nana-address-registry-v6"
+    "url": "git+https://github.com/Bananapus/nana-address-registry-v6.git"
   },
   "engines": {
     "node": ">=20.0.0"
