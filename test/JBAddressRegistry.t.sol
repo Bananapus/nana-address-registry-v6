@@ -35,7 +35,7 @@ contract JBAddressRegistryTest is Test {
         registry.registerAddress(deployer, nonce);
 
         // Check: does the address correspond to the correct deployer in the mapping?
-        assertTrue(registry.deployerOf(mockValidAddress) == deployer);
+        assertEq(registry.deployerOf(mockValidAddress), deployer);
     }
 
     /// @custom:test When registering a pay hook deployed by a contract using `create1`, ensure that the transaction is
@@ -60,7 +60,7 @@ contract JBAddressRegistryTest is Test {
         registry.registerAddress(address(factory), nonce); // Nonce starts at 1 for contracts
 
         // Check: does the address correspond to the correct deployer in the mapping?
-        assertTrue(registry.deployerOf(mockValidAddress) == address(factory));
+        assertEq(registry.deployerOf(mockValidAddress), address(factory));
     }
 
     /// @custom:test When registering a pay hook deployed by a contract using `create2`, ensure that the transaction is
@@ -78,7 +78,7 @@ contract JBAddressRegistryTest is Test {
         registry.registerAddress(address(factory), salt, type(MockDeployment).creationCode);
 
         // Check: does the address correspond to the correct deployer in the mapping?
-        assertTrue(registry.deployerOf(mockValidAddress) == address(factory));
+        assertEq(registry.deployerOf(mockValidAddress), address(factory));
     }
 }
 
