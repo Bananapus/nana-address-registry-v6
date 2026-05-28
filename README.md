@@ -2,12 +2,17 @@
 
 `@bananapus/address-registry-v6` is a permissionless registry that records deployer provenance for contracts when callers provide matching `create` or `create2` deployment inputs. It is meant to make deployer provenance visible on-chain, especially for hooks and helper contracts that users may need to trust before interacting with them.
 
-Architecture: [ARCHITECTURE.md](./ARCHITECTURE.md)  
-User journeys: [USER_JOURNEYS.md](./USER_JOURNEYS.md)  
-Skills: [SKILLS.md](./SKILLS.md)  
-Risks: [RISKS.md](./RISKS.md)  
-Administration: [ADMINISTRATION.md](./ADMINISTRATION.md)  
-Audit instructions: [AUDIT_INSTRUCTIONS.md](./AUDIT_INSTRUCTIONS.md)
+## Documentation
+
+- [INVARIANTS.md](./INVARIANTS.md) — guarantees, operator powers, per-contract operation inventory, and cross-cutting invariants.
+- [ARCHITECTURE.md](./ARCHITECTURE.md) — system overview, modules, trust boundaries, and critical flows.
+- [ADMINISTRATION.md](./ADMINISTRATION.md) — control posture (none), roles, and recovery model.
+- [RISKS.md](./RISKS.md) — risk register, with provenance-vs-safety as the P1 misuse risk.
+- [USER_JOURNEYS.md](./USER_JOURNEYS.md) — registration and lookup flows for deployers, integrators, and auditors.
+- [AUDIT_INSTRUCTIONS.md](./AUDIT_INSTRUCTIONS.md) — scope, critical invariants, and attack surfaces for auditors.
+- [SKILLS.md](./SKILLS.md) — orientation map for AI agents working in this repo.
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) — Solidity and repo conventions for the V6 ecosystem.
+- [CHANGELOG.md](./CHANGELOG.md) — verified deltas from v5 to v6.
 
 ## Overview
 
