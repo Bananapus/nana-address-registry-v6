@@ -1,7 +1,5 @@
 # Invariants of `nana-address-registry-v6`
 
-Last updated: 2026-05-28.
-
 Scope: the `JBAddressRegistry` contract — a permissionless, adminless, first-write provenance registry that maps deployed contract addresses to the deployer that produced them. The repo ships exactly one contract (`src/JBAddressRegistry.sol`, ~150 lines) and one interface (`src/interfaces/IJBAddressRegistry.sol`). There is no owner, no upgrade path, no pause, no allowlist.
 
 | Item | Value |
@@ -53,7 +51,7 @@ What this registry **does not**: vouch for code safety, audit status, governance
 - A registration does **not** mean the contract code is safe, audited, canonical, or endorsed.
 - A registration does **not** mean the caller of `registerAddress` is the deployer.
 - An **absent** registration does **not** mean an address is malicious or untrusted; it may simply be unregistered.
-- A registration does **not** guarantee the runtime code is still the same code present at registration time (the bytecode could be self-destructed in pre-Cancun deployments; for `CREATE2` the same address could have been re-deployed if originally selfdestructed — though `deployerOf` would already be set and prevent a re-registration).
+- A registration does **not** guarantee the runtime code is still the same code present at registration time (the contract could have been self-destructed in pre-Cancun deployments; for `CREATE2` the same address could have been re-deployed if originally selfdestructed — though `deployerOf` would already be set and prevent a re-registration).
 
 ---
 
