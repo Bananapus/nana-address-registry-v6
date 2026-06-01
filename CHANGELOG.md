@@ -1,5 +1,9 @@
 # Changelog
 
+## Maintenance
+
+- Raise dependency floors to the latest published versions, and document NatSpec, comment, and lint conventions in STYLE_GUIDE.
+
 ## Scope
 
 This file describes the verified change from `nana-address-registry-v5` to the current `nana-address-registry-v6` repo.
