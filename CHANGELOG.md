@@ -37,3 +37,8 @@ This file describes the verified change from `nana-address-registry-v5` to the c
 
 - If you treated this repo as ABI-stable, that is mostly still true, but behavior around bad inputs is stricter.
 - Recheck any tool that depended on silent high-nonce behavior. v6 makes that path explicit instead of permissive.
+
+## Tooling
+
+- Fixed the deployment configuration so the Sphinx proposal can validate and run. `foundry.toml` now emits the storage-layout build output (`extra_output = ['storageLayout']`) that Sphinx checks during proposal validation, and adds `[rpc_endpoints]` entries for every network the deploy script targets (Optimism, Base, Arbitrum, and the Ethereum/Optimism/Base/Arbitrum Sepolia testnets) so the proposal can connect. Previously only `ethereum` was configured, so the proposal failed before collecting any deployment transactions.
+- Synced the `package-lock.json` version field with `package.json`; they had drifted apart.

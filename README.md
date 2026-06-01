@@ -91,6 +91,16 @@ Useful scripts:
 
 The deploy script uses Sphinx for deterministic deployment. This package is intentionally small and independent because many other repos use it to record clone factories and helper deployments.
 
+`script/Deploy.s.sol` targets Ethereum, Optimism, Base, and Arbitrum (plus their Sepolia testnets). For the Sphinx proposal to validate and run, `foundry.toml` must:
+
+- enable the storage-layout build output (`extra_output = ['storageLayout']`), which Sphinx reads during proposal validation, and
+- define an `[rpc_endpoints]` entry for each of those networks so the proposal can connect.
+
+Provide the matching RPC URLs through environment variables before proposing or deploying:
+
+- `RPC_ETHEREUM_MAINNET`, `RPC_OPTIMISM_MAINNET`, `RPC_BASE_MAINNET`, `RPC_ARBITRUM_MAINNET`
+- `RPC_ETHEREUM_SEPOLIA`, `RPC_OPTIMISM_SEPOLIA`, `RPC_BASE_SEPOLIA`, `RPC_ARBITRUM_SEPOLIA`
+
 ## Repository Layout
 
 ```text
