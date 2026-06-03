@@ -1,21 +1,21 @@
 # User Journeys
 
-## Repo Purpose
+## Repo purpose
 
 This repo records deployer provenance for contracts whose address can be reconstructed from `create` or `create2` inputs. It does not say whether a deployment is safe, canonical, or approved. It only says who deployed it when the inputs are correct and someone registered them.
 
-## Primary Actors
+## Primary actors
 
 - deployers who want onchain provenance for hooks, clones, and helper contracts
 - integrators who need to verify who deployed an address before trusting it
 - auditors who want a deterministic provenance check instead of offchain screenshots
 
-## Key Surfaces
+## Key surfaces
 
 - `JBAddressRegistry`: stores `deployerOf[address]` after reconstructing the target address from deployment inputs
 - `registerAddress(deployer, nonce)` and `registerAddress(deployer, salt, bytecode)`: the two provenance-registration paths
 
-## Journey 1: Register A `CREATE` Deployment
+## Journey 1: Register a `CREATE` deployment
 
 **Actor:** deployer, operator, or auditor with the original deployment inputs.
 
@@ -37,7 +37,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 - the nonce exceeds the supported `uint64` range and registration reverts
 - the deployment assumptions are wrong and the reconstructed address is useless
 
-## Journey 2: Register A `CREATE2` Deployment
+## Journey 2: Register a `CREATE2` deployment
 
 **Actor:** deployer, operator, or auditor with the original deterministic deployment inputs.
 
@@ -60,7 +60,7 @@ This repo records deployer provenance for contracts whose address can be reconst
 - operators assume registration proves a contract exists there right now
 - consumers misread provenance as an allowlist or audit stamp
 
-## Journey 3: Resolve Provenance For An Existing Address
+## Journey 3: Resolve provenance for an existing address
 
 **Actor:** integrator, frontend, or auditor.
 
@@ -80,13 +80,13 @@ This repo records deployer provenance for contracts whose address can be reconst
 - downstream reviewers know which deployer or factory to inspect next
 - the trust decision still happens outside this repo
 
-## Trust Boundaries
+## Trust boundaries
 
 - this repo only proves registered deployer provenance from deterministic inputs
 - anyone can submit a valid claim, so the mapping authenticates deployment inputs rather than caller identity
 - it does not prove code quality, audit status, or governance approval
 
-## Hand-Offs
+## Hand-offs
 
 - Use this repo together with the relevant deployer repo when provenance of clones, hooks, or helper contracts matters.
 - Use [deploy-all-v6](../deploy-all-v6/USER_JOURNEYS.md) or a package-specific deployer repo when the question is about deployment sequencing rather than provenance recording.

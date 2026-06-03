@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-/// @notice A registry that maps deployed contract addresses to their deployers, allowing anyone to verify who deployed
-/// a given contract. Primarily used to verify the trustworthiness of Juicebox hooks and extensions.
+/// @notice A public registry that records who deployed a given contract. Anyone can register a contract's deployer,
+/// and anyone can look it up — enabling frontend clients and other contracts to verify that a Juicebox hook or
+/// extension was deployed by a trusted source.
 interface IJBAddressRegistry {
     /// @notice Emitted when a contract's deployer is registered.
     /// @param addr The address of the registered contract.
@@ -16,11 +17,15 @@ interface IJBAddressRegistry {
     function deployerOf(address addr) external view returns (address deployer);
 
     /// @notice Register a contract that was deployed with `create` (standard deployment).
+    /// @dev The address is derived deterministically from the deployer and nonce, and code must already exist there
+    /// before the deployer is recorded.
     /// @param deployer The address that deployed the contract.
     /// @param nonce The deployer's transaction nonce at the time of deployment.
     function registerAddress(address deployer, uint256 nonce) external;
 
     /// @notice Register a contract that was deployed with `create2` (deterministic deployment).
+    /// @dev The address is derived deterministically from the deployer, salt, and bytecode, and code must already
+    /// exist there before the deployer is recorded.
     /// @param deployer The address that deployed the contract.
     /// @param salt The `create2` salt used during deployment.
     /// @param bytecode The full deployment bytecode, including constructor arguments.

@@ -25,15 +25,13 @@ Because the address is computed deterministically, registrations do not need acc
 
 Use this repo when deployer provenance matters. Do not confuse it with an allowlist, review registry, or trust oracle.
 
-If the question is "is this hook safe?" this repo can only tell you who deployed it, not whether the code is good.
-
-## Key Contract
+## Key contract
 
 | Contract | Role |
 | --- | --- |
 | `JBAddressRegistry` | Standalone registry that stores `deployerOf[address]` and exposes overloaded `registerAddress` entrypoints. |
 
-## Mental Model
+## Mental model
 
 The registry is intentionally narrow:
 
@@ -43,25 +41,25 @@ The registry is intentionally narrow:
 
 Anything beyond that is out of scope.
 
-## Read These Files First
+## Read these files first
 
 1. `src/JBAddressRegistry.sol`
 2. `test/JBAddressRegistry.t.sol`
 3. `test/JBAddressRegistryEdge.t.sol`
 4. `test/regression/RegressionFrontRunRegistrationDoS.t.sol`
 
-## Integration Traps
+## Integration traps
 
 - provenance is only useful if callers also know what the deployer is trusted for
 - permissionless registration is intentional, so integrations should verify the computed inputs rather than assume caller authority
 - `create` nonce reconstruction and `create2` salt-bytecode reconstruction are different trust paths and should be reasoned about separately
 
-## Where State Lives
+## Where state lives
 
 - deployer provenance: `JBAddressRegistry`
 - deployment truth: the target chain history and bytecode inputs outside this repo
 
-## High-Signal Tests
+## High-signal tests
 
 1. `test/JBAddressRegistry.t.sol`
 2. `test/JBAddressRegistryEdge.t.sol`
@@ -87,7 +85,7 @@ Useful scripts:
 - `npm run deploy:mainnets`
 - `npm run deploy:testnets`
 
-## Deployment Notes
+## Deployment notes
 
 The deploy script uses Sphinx for deterministic deployment. This package is intentionally small and independent because many other repos use it to record clone factories and helper deployments.
 
@@ -101,7 +99,7 @@ Provide the matching RPC URLs through environment variables before proposing or 
 - `RPC_ETHEREUM_MAINNET`, `RPC_OPTIMISM_MAINNET`, `RPC_BASE_MAINNET`, `RPC_ARBITRUM_MAINNET`
 - `RPC_ETHEREUM_SEPOLIA`, `RPC_OPTIMISM_SEPOLIA`, `RPC_BASE_SEPOLIA`, `RPC_ARBITRUM_SEPOLIA`
 
-## Repository Layout
+## Repository layout
 
 ```text
 src/
@@ -114,13 +112,15 @@ script/
   helpers/
 ```
 
-## Risks And Notes
+## Risks and notes
 
 - provenance is not the same as safety; a known deployer can still deploy unsafe code
 - registrations are first-write only, so bad initial registration is sticky
 - the `create` path relies on nonce reconstruction and intentionally rejects unrealistic nonce ranges
 
-## For AI Agents
+## For AI agents
 
 - Describe this repo as a provenance registry, not as an allowlist or safety oracle.
 - Read the edge and review tests before making claims about frontrunning or unauthorized registration.
+
+If the question is "is this hook safe?" this repo can only tell you who deployed it, not whether the code is good.

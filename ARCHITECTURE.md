@@ -4,11 +4,11 @@
 
 `nana-address-registry-v6` is a small provenance primitive. It records which deployer could have created a contract address by recomputing `CREATE` or `CREATE2` inputs and storing the verified result on-chain.
 
-## System Overview
+## System overview
 
 The repo is intentionally small. `JBAddressRegistry` accepts deterministic deployment inputs, reconstructs the resulting address, and records the deployer if that address has not already been registered. It does not judge code safety, manage upgrades, or gate deployments.
 
-## Core Invariants
+## Core invariants
 
 - registration is permissionless because correctness comes from deterministic derivation, not caller authority
 - a contract address can only be registered once
@@ -22,13 +22,13 @@ The repo is intentionally small. `JBAddressRegistry` accepts deterministic deplo
 | `JBAddressRegistry` | Address derivation and first-write provenance storage | Main contract |
 | `IJBAddressRegistry` | Minimal lookup and registration interface | External surface |
 
-## Trust Boundaries
+## Trust boundaries
 
 - the registry attests to deterministic provenance, not code quality
 - it does not manage ownership, upgrades, or allowlists
 - external systems may trust its recorded provenance, so derivation correctness is the whole product
 
-## Critical Flows
+## Critical flows
 
 ### Register
 
@@ -39,24 +39,24 @@ caller
   -> registry records the deployer if the address was previously unregistered
 ```
 
-## Accounting Model
+## Accounting model
 
 No economic accounting lives here. The only important state is `deployerOf[address]`.
 
-## Security Model
+## Security model
 
 - the risk is concentrated in a small amount of address-derivation logic
 - the registry records the derived deployer, not the transaction caller
 - overengineering is more dangerous than minimal, reviewable derivation code
 
-## Safe Change Guide
+## Safe change guide
 
 - treat derivation code like cryptographic plumbing
 - keep the undeployed-address check and first-write-only rule intact
 - if nonce handling or bytecode hashing changes, keep `CREATE` and `CREATE2` tests aligned
 - do not expand the repo into an allowlist or trust-oracle system
 
-## Canonical Checks
+## Canonical checks
 
 - `CREATE` and `CREATE2` derivation correctness:
   `test/JBAddressRegistry.t.sol`
@@ -68,7 +68,7 @@ No economic accounting lives here. The only important state is `deployerOf[addre
   `test/regression/RegressionUnauthorizedRegistrar.t.sol`
   `test/regression/ZeroDeployerRegistration.t.sol`
 
-## Source Map
+## Source map
 
 - `src/JBAddressRegistry.sol`
 - `src/interfaces/IJBAddressRegistry.sol`

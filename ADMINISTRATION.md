@@ -1,6 +1,6 @@
 # Administration
 
-## At A Glance
+## At a glance
 
 | Item | Details |
 | --- | --- |
@@ -13,7 +13,7 @@
 
 `nana-address-registry-v6` has no admin surface. It is a permissionless first-write provenance registry.
 
-## Control Model
+## Control model
 
 - no owner
 - no governance
@@ -27,21 +27,21 @@
 | --- | --- | --- | --- |
 | Anyone | No assignment | Global | Can register an address if they provide correct `CREATE` or `CREATE2` inputs |
 
-## Privileged Surfaces
+## Privileged surfaces
 
 There are no privileged functions. `registerAddress(...)` is permissionless for both registration paths.
 
-## Immutable And One-Way
+## Immutable and one-way
 
 - registration is first-write only
 - there is no overwrite or delete path for `deployerOf[address]`
 
-## Operational Notes
+## Operational notes
 
 - treat registration as provenance, not endorsement
 - register addresses from trustworthy operational pipelines because bad first registration is sticky even though anyone can submit the correct derivation inputs
 
-## Machine Notes
+## Machine notes
 
 - do not treat registration as a safety certification or allowlist signal
 - `src/JBAddressRegistry.sol` is the only control-relevant runtime file; there is no hidden owner path
@@ -52,12 +52,12 @@ There are no privileged functions. `registerAddress(...)` is permissionless for 
 - there is no admin recovery surface
 - if derivation logic were ever wrong, the contract would need replacement rather than intervention
 
-## Admin Boundaries
+## Admin boundaries
 
 - nobody can curate allowlists, edit entries, or block registration
 - nobody can use this registry to certify code safety
 
-## Source Map
+## Source map
 
 - `src/JBAddressRegistry.sol`
 - `src/interfaces/IJBAddressRegistry.sol`
