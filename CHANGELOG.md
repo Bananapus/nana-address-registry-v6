@@ -1,45 +1,54 @@
-# Changelog
+# V5 to V6 Changelog
 
 ## Scope
 
-This file describes the verified change from `nana-address-registry-v5` to `nana-address-registry-v6`.
+This is a V5-to-V6 migration changelog, not a package release log or commit history. It compares `nana-address-registry-v5` in `../../v5/evm` with the current `nana-address-registry-v6` repo.
 
-## v6 surface
+## Current V6 Surface
 
 - `JBAddressRegistry`
 - `IJBAddressRegistry`
 
 ## Summary
 
-- v6 guards against oversized nonces; v5 silently produced the wrong derived address once its encoding assumptions no longer held.
-- v6 explicitly rejects zero-address deployers.
-- The external surface stays intentionally small; v6 differs from v5 in behavior more than in shape.
-- v6 builds against Solidity `0.8.28`; v5 builds against the v5 Solidity baseline.
+- The public interface shape is intentionally close to V5: callers still register CREATE and CREATE2 addresses and read `deployerOf(...)`.
+- V6 hardens CREATE address derivation and validation. CREATE nonce handling now rejects nonces that cannot be encoded in the supported form, and registration rejects zero deployers and addresses with no deployed code.
+- The event name stays the same, but custom errors make failure modes more explicit than in V5.
 
-## Behavior deltas
+## ABI, Event, and Error Changes
 
-- `_addressFrom(...)` derives `CREATE` addresses through the full `uint64` nonce range in v6; v5 stops at `uint32`.
-- `JBAddressRegistry_NonceTooLarge(uint256)` reverts above the supported range.
-- `JBAddressRegistry_ZeroDeployer()` reverts when registering against `address(0)`.
-- Duplicate registration reverts with `JBAddressRegistry_AlreadyRegistered(address)`.
+- Stable function surface:
+  - `deployerOf(address)`
+  - `registerAddress(address,uint256)`
+  - `registerAddress(address,bytes32,bytes)`
+- Stable event:
+  - `AddressRegistered`
+- Added custom errors:
+  - `JBAddressRegistry_AlreadyRegistered`
+  - `JBAddressRegistry_NonceTooLarge`
+  - `JBAddressRegistry_ZeroDeployer`
+  - `JBAddressRegistry_AddressNotDeployed`
 
-## ABI deltas
+## Machine-Checked ABI Coverage
 
-- No function-selector migration.
-- The ABI-visible delta is the new custom errors that callers and tooling decode.
+Generated from Foundry `out/**/*.json` artifacts, filtered to this repo's own runtime source roots and excluding tests, scripts, and dependencies.
 
-## Indexer impact
+- V5 comparison package: `nana-address-registry-v5`.
+- Own-source ABI artifacts compared: V6 `2`, V5 `2`.
+- Contract/interface coverage: `0` added, `0` removed, `1` shared names with ABI changes, `1` shared names ABI-identical.
+- Shared-name ABI item deltas: `4` added, `0` removed, `0` modified.
 
-- Event shape is unchanged between v5 and v6.
-- The migration concern is v6's stricter revert behavior for inputs v5 tolerated.
+Shared ABI artifacts with changes:
+- `JBAddressRegistry`: `4` added, `0` removed, `0` modified ABI items.
 
-## Migration notes
+Generated event/error name deltas:
+- Error names added:
+  - `JBAddressRegistry_AddressNotDeployed`, `JBAddressRegistry_AlreadyRegistered`, `JBAddressRegistry_NonceTooLarge`, `JBAddressRegistry_ZeroDeployer`.
 
-- If you treated this repo as ABI-stable, that mostly holds; v6 is stricter around bad inputs.
-- Recheck any tool that depended on v5's silent high-nonce behavior. v6 reverts on that path instead.
+Shared ABI artifacts checked with no ABI item changes:
+- `IJBAddressRegistry`.
 
-## Repo housekeeping
+## Migration Notes
 
-- Dependency floors track the latest published versions, and STYLE_GUIDE documents the NatSpec, comment, and lint conventions.
-- `foundry.toml` emits the storage-layout build output (`extra_output = ['storageLayout']`) that Sphinx reads during proposal validation, and defines `[rpc_endpoints]` for every network the deploy script targets (Optimism, Base, Arbitrum, and the Ethereum/Optimism/Base/Arbitrum Sepolia testnets) so the Sphinx proposal can validate, connect, and collect deployment transactions across all of them.
-- The `package-lock.json` version field matches `package.json`.
+- Existing calldata for the two `registerAddress(...)` overloads remains structurally familiar, but callers should handle V6 custom errors.
+- Review scripts that register predicted CREATE addresses. Nonce values that were silently mishandled or impossible to encode in V5 now fail explicitly.
