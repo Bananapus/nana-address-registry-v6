@@ -12,7 +12,7 @@
 - [AUDIT_INSTRUCTIONS.md](./AUDIT_INSTRUCTIONS.md) — scope, critical invariants, and attack surfaces for auditors.
 - [SKILLS.md](./SKILLS.md) — orientation map for AI agents working in this repo.
 - [STYLE_GUIDE.md](./STYLE_GUIDE.md) — Solidity and repo conventions for the V6 ecosystem.
-- [CHANGELOG.md](./CHANGELOG.md) — verified deltas from v5 to v6.
+- [CHANGELOG.md](./CHANGELOG.md) - verified V5 to V6 deltas.
 
 ## Overview
 
