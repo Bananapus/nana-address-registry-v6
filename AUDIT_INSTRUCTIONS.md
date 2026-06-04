@@ -2,7 +2,7 @@
 
 This repo is a small registry, but it sits on a deployer-verification boundary across the ecosystem. Treat incorrect registration as a security failure.
 
-## Audit Objective
+## Audit objective
 
 There is a billion dollars of well-meaning projects' money in the Juicebox Money Engine, growing exponentially. Your job is to hack it before anyone else. Whoever hacks it first saves/steals the money, and you are obsessed with being this winner, while also being a steward of the protocol and wanting it to keep growing safely.
 
@@ -21,32 +21,32 @@ In scope:
 - `src/interfaces/IJBAddressRegistry.sol`
 - all deployment helpers in `script/`
 
-## Start Here
+## Start here
 
 1. `src/JBAddressRegistry.sol`
 2. `script/Deploy.s.sol`
 
-## Security Model
+## Security model
 
 The registry maps deployed addresses to the deployer that created them. Downstream repos use it to:
 
 - validate provenance for clones or deterministically deployed instances
 - discover whether a contract came from an approved deployer path
 
-## Roles And Privileges
+## Roles and privileges
 
 | Role | Powers | How constrained |
 |------|--------|-----------------|
 | Registrant | Register contracts by supplying deterministic deployment inputs | Must supply inputs that reconstruct an already-deployed contract address |
 | Registry reader | Interpret provenance for downstream decisions | Must pair provenance with an external trust model |
 
-## Integration Assumptions
+## Integration assumptions
 
 | Dependency | Assumption | What breaks if wrong |
 |------------|------------|----------------------|
 | Approved deployers | Produce the addresses they claim | Downstream provenance gates become meaningless |
 
-## Critical Invariants
+## Critical invariants
 
 1. Provenance cannot be forged.  
    Only inputs matching the actual deployer path may create a successful registration for a contract.
@@ -55,7 +55,7 @@ The registry maps deployed addresses to the deployer that created them. Downstre
 3. Registration metadata is stable.  
    Nonce, salt, or address truncation must not allow collisions or stale reads.
 
-## Attack Surfaces
+## Attack surfaces
 
 - registration entrypoints that rely on deployer provenance
 - overwrite and replay paths

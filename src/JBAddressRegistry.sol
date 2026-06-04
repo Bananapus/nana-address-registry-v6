@@ -101,6 +101,7 @@ contract JBAddressRegistry is IJBAddressRegistry {
     /// @dev Adapted from https://ethereum.stackexchange.com/a/87840/68134
     /// @param origin The deployer's address.
     /// @param nonce The nonce used to deploy the contract.
+    /// @return addr The computed address of the contract deployed with `create`.
     function _addressFrom(address origin, uint256 nonce) internal pure returns (address addr) {
         if (nonce > type(uint64).max) revert JBAddressRegistry_NonceTooLarge(nonce);
 

@@ -1,48 +1,45 @@
 # Changelog
 
-## Maintenance
-
-- Raise dependency floors to the latest published versions, and document NatSpec, comment, and lint conventions in STYLE_GUIDE.
-
 ## Scope
 
-This file describes the verified change from `nana-address-registry-v5` to the current `nana-address-registry-v6` repo.
+This file describes the verified change from `nana-address-registry-v5` to `nana-address-registry-v6`.
 
-## Current v6 surface
+## v6 surface
 
 - `JBAddressRegistry`
 - `IJBAddressRegistry`
 
 ## Summary
 
-- Nonce handling is safer than in v5. The registry now guards against oversized nonces instead of silently producing the wrong derived address once the old encoding assumptions stopped holding.
-- Zero-address deployers are explicitly rejected.
-- The external surface remains intentionally small. This repo changed behavior more than shape.
-- The repo moved from the v5 Solidity baseline to `0.8.28`.
+- v6 guards against oversized nonces; v5 silently produced the wrong derived address once its encoding assumptions no longer held.
+- v6 explicitly rejects zero-address deployers.
+- The external surface stays intentionally small; v6 differs from v5 in behavior more than in shape.
+- v6 builds against Solidity `0.8.28`; v5 builds against the v5 Solidity baseline.
 
-## Verified deltas
+## Behavior deltas
 
-- `_addressFrom(...)` now supports RLP nonce encoding through `uint64` instead of stopping at the old `uint32` path.
-- `JBAddressRegistry_NonceTooLarge(uint256)` is thrown above that supported range.
-- `JBAddressRegistry_ZeroDeployer()` is thrown when trying to register against `address(0)`.
-- Duplicate registration now explicitly reverts with `JBAddressRegistry_AlreadyRegistered(address)`.
+- `_addressFrom(...)` derives `CREATE` addresses through the full `uint64` nonce range in v6; v5 stops at `uint32`.
+- `JBAddressRegistry_NonceTooLarge(uint256)` reverts above the supported range.
+- `JBAddressRegistry_ZeroDeployer()` reverts when registering against `address(0)`.
+- Duplicate registration reverts with `JBAddressRegistry_AlreadyRegistered(address)`.
 
-## Breaking ABI changes
+## ABI deltas
 
-- There is no meaningful function-selector migration here.
-- The practical ABI-visible change is new custom errors that callers and tooling may need to decode.
+- No function-selector migration.
+- The ABI-visible delta is the new custom errors that callers and tooling decode.
 
 ## Indexer impact
 
-- Event shape is effectively unchanged.
-- The real migration concern is stricter revert behavior for previously tolerated bad inputs.
+- Event shape is unchanged between v5 and v6.
+- The migration concern is v6's stricter revert behavior for inputs v5 tolerated.
 
 ## Migration notes
 
-- If you treated this repo as ABI-stable, that is mostly still true, but behavior around bad inputs is stricter.
-- Recheck any tool that depended on silent high-nonce behavior. v6 makes that path explicit instead of permissive.
+- If you treated this repo as ABI-stable, that mostly holds; v6 is stricter around bad inputs.
+- Recheck any tool that depended on v5's silent high-nonce behavior. v6 reverts on that path instead.
 
-## Tooling
+## Repo housekeeping
 
-- Fixed the deployment configuration so the Sphinx proposal can validate and run. `foundry.toml` now emits the storage-layout build output (`extra_output = ['storageLayout']`) that Sphinx checks during proposal validation, and adds `[rpc_endpoints]` entries for every network the deploy script targets (Optimism, Base, Arbitrum, and the Ethereum/Optimism/Base/Arbitrum Sepolia testnets) so the proposal can connect. Previously only `ethereum` was configured, so the proposal failed before collecting any deployment transactions.
-- Synced the `package-lock.json` version field with `package.json`; they had drifted apart.
+- Dependency floors track the latest published versions, and STYLE_GUIDE documents the NatSpec, comment, and lint conventions.
+- `foundry.toml` emits the storage-layout build output (`extra_output = ['storageLayout']`) that Sphinx reads during proposal validation, and defines `[rpc_endpoints]` for every network the deploy script targets (Optimism, Base, Arbitrum, and the Ethereum/Optimism/Base/Arbitrum Sepolia testnets) so the Sphinx proposal can validate, connect, and collect deployment transactions across all of them.
+- The `package-lock.json` version field matches `package.json`.

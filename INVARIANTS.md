@@ -17,7 +17,7 @@ What this registry **does not**: vouch for code safety, audit status, governance
 
 ---
 
-# Section A — Guarantees to Users (Registrants & Consumers)
+## Section A — Guarantees to users (registrants and consumers)
 
 ## A.1 Registration determinism
 
@@ -55,7 +55,7 @@ What this registry **does not**: vouch for code safety, audit status, governance
 
 ---
 
-# Section B — Operator / Admin Powers
+## Section B — Operator / admin powers
 
 There is no operator or admin.
 
@@ -69,7 +69,7 @@ There is no operator or admin.
 
 ---
 
-# Section C — Per-Contract Operation Inventory
+## Section C — Per-contract operation inventory
 
 ## C.1 `JBAddressRegistry` — `src/JBAddressRegistry.sol`
 
@@ -105,7 +105,7 @@ There is no operator or admin.
 
 ---
 
-# Section D — Cross-Cutting Invariants
+## Section D — Cross-cutting invariants
 
 ## D.1 State minimality
 
@@ -136,7 +136,7 @@ There is no operator or admin.
 
 ---
 
-# Section E — Centralization & Trust Assumptions
+## Section E — Centralization and trust assumptions
 
 ## E.1 Centralization risks
 
@@ -155,7 +155,7 @@ There is no operator or admin.
 
 ---
 
-# Section F — File:Line References
+## Section F — File:line references
 
 | Invariant or rule | Source |
 |---|---|
